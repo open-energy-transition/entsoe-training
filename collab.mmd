@@ -1,0 +1,12 @@
+sequenceDiagram
+  participant working as working directory
+  participant staging as staging area
+  participant local as local repo
+  participant remote as remote repo (origin)
+  participant upstream as remote repo (upstream)
+  upstream ->> remote: fork
+  remote ->> local: git clone
+  working ->> staging: git add
+  staging ->> local: git commit
+  local ->> remote: git push
+  remote ->> upstream: pull/merge request
