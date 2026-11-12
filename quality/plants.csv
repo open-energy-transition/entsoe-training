@@ -1,0 +1,6 @@
+name,tech,capacity_mw,generation_mwh,capex_eur,opex_eur_per_year,lifetime_years
+North Sea 1,wind,400,1450000,1200000000,30000000,25
+Sunfield,solar,150,190000,110000000,2000000,30
+Riverside CCGT,gas,800,3500000,700000000,90000000,30
+Old Ironworks,Coal,600,2900000,900000000,120000000,40
+Hilltop,wind,0,0,50000000,1000000,20
