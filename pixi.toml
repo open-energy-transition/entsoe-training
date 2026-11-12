@@ -5,12 +5,16 @@ platforms = ["linux-64"]
 
 [dependencies]
 mermaid-cli = ">=11.17.0,<12"
+ruff = ">=0.17.4,<0.18"
 
 [tasks.clean]
 cmd = "rm diagrams/*.png diagrams/*.svg"
 
 [tasks.browser]
 cmd = "$CONDA_PREFIX/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/.bin/puppeteer browsers install chrome-headless-shell"
+
+[tasks.lint]
+cmd = "ruff check --select ALL"
 
 [tasks.diagrams]
 depends-on = ["browser"]
