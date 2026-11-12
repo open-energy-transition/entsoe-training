@@ -5,7 +5,9 @@ Sources (identical files):
 - Open-TYNDP mirror, https://storage.googleapis.com/open-tyndp-data-store/2026/2026-11-11/inputs/
   (Demand.zip, PECD.zip, PEMMDB_2.X.zip)
 
-Licence: ENTSO-E/ENTSOG TYNDP 2026 Scenarios data; terms on the download page.
+Licence: ENTSO-E/ENTSOG TYNDP 2026 Scenarios data, CC-BY-4.0
+(https://creativecommons.org/licenses/by/4.0/). Changes: this script extracts a subset, rounds it, and converts and sums
+the PEMMDB capacities from GW to MW.
 
 Demand is the e-market electricity load (MW); capacity factors are PECD onshore wind,
 offshore wind (DE only) and utility-scale solar PV (p.u.). All series use weather scenario WS032, which the

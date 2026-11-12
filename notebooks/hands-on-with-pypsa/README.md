@@ -2,7 +2,7 @@
 
 Material for the session "Hands on with PyPSA components" of the ENTSO-E training by [Open Energy Transition](https://openenergytransition.org), 17 November 2026.
 
-Goal: open `hands-on-pypsa-components.ipynb` in JupyterLab and run it.
+Goal: open `hands-on-pypsa-components.ipynb` and run it.
 
 ## Requirements
 
@@ -85,4 +85,4 @@ You do not need the scripts in `scripts/`: `build_notebook.py` generates the not
 
 ## Licence
 
-The notebook reuses material from [Data Science for Energy System Modelling](https://fneum.github.io/data-science-for-esm/) (F. Neumann, TU Berlin; MIT for code, CC-BY-4.0 for content) and from the [PyPSA example notebooks](https://docs.pypsa.org/latest/examples/) (CC-BY-4.0, code included). The files in `data/` are extracted from the [TYNDP 2026 Scenarios data](https://2026.entsos-tyndp-scenarios.eu/download/) of ENTSO-E and ENTSOG; see the download page for its terms. The last section of the notebook, "Sources and licences", lists every source and its licence.
+The notebook reuses material from [Data Science for Energy System Modelling](https://fneum.github.io/data-science-for-esm/) (F. Neumann, TU Berlin; MIT for code, CC-BY-4.0 for content) and from the [PyPSA example notebooks](https://docs.pypsa.org/latest/examples/) (CC-BY-4.0, code included). The files in `data/` are extracted from the [TYNDP 2026 Scenarios data](https://2026.entsos-tyndp-scenarios.eu/download/) of ENTSO-E and ENTSOG, released under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/); `scripts/extract_tyndp.py` documents the changes (subset, rounding, unit conversion). The last section of the notebook, "Sources and licences", lists every source and its licence.
