@@ -1,3 +1,4 @@
+```mermaid
 sequenceDiagram
   participant working as working directory
   participant staging as staging area
@@ -9,3 +10,4 @@ sequenceDiagram
   remote ->> local: git fetch
   local ->> working: git checkout
   local ->> working: git merge
+```
