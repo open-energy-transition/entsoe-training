@@ -7,13 +7,13 @@ platforms = ["linux-64"]
 mermaid-cli = ">=11.17.0,<12"
 
 [tasks.clean]
-cmd = "rm *.svg *.png"
+cmd = "rm diagrams/*.png diagrams/*.svg"
 
 [tasks.browser]
 cmd = "$CONDA_PREFIX/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/.bin/puppeteer browsers install chrome-headless-shell"
 
 [tasks.diagrams]
 depends-on = ["browser"]
-cmd = "bash -ec 'for f in *.mmd; do mmdc -i \"$f\" -o \"${f%.mmd}.svg\"; mmdc -i \"$f\" -o \"${f%.mmd}.png\" -s 2; done'"
-inputs = ["*.mmd"]
+cmd = "bash -ec 'for f in diagrams/*.md; do mmdc -i \"$f\" -o \"${f%.md}.svg\"; mmdc -i \"$f\" -o \"${f%.md}.png\" -s 2; done'"
+inputs = ["diagrams/*.md"]
 outputs = ["*.svg", "*.png"]
