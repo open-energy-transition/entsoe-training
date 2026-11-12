@@ -81,7 +81,7 @@ The notebook also runs on [Google Colab](https://colab.research.google.com/), pr
 | Long path error during `pip install` | Windows 260-character path limit | Move the folder to a short path such as `C:\entsoe-training` |
 | `ModuleNotFoundError: No module named 'pypsa'` | The notebook runs on another Python | Select the `.venv` kernel |
 
-You do not need `build_notebook.py` (generates the notebook) or `extract_tyndp.py` (writes `data/` from the TYNDP 2026 Scenarios data package).
+You do not need the scripts in `scripts/`: `build_notebook.py` generates the notebook, `extract_tyndp.py` writes `data/` from the TYNDP 2026 Scenarios data package.
 
 ## Licence
 

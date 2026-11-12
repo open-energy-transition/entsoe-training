@@ -1,7 +1,7 @@
 """Build hands-on-pypsa-components.ipynb, next to this script, from the cells below.
 
 Edit this script, never the notebook. Run:
-    python build_notebook.py [RESOLUTION]
+    python scripts/build_notebook.py [RESOLUTION]
 RESOLUTION (hours per snapshot) defaults to 6. Use 12 for quick development runs.
 """
 
@@ -11,7 +11,7 @@ from pathlib import Path
 import nbformat
 from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 
-OUT = Path(__file__).resolve().parent / "hands-on-pypsa-components.ipynb"
+OUT = Path(__file__).resolve().parents[1] / "hands-on-pypsa-components.ipynb"
 RESOLUTION = int(sys.argv[1]) if len(sys.argv) > 1 else 6
 
 DSESM = "https://fneum.github.io/data-science-for-esm/dsesm"
@@ -212,7 +212,7 @@ md(
     f"""
 ## Loading time series data
 
-The file `data/tyndp2026-nt2035-hourly-demand-wind-solar.csv` holds hourly time series of [TYNDP 2026]({TYNDP}) National Trends+ 2035, WS032 (as in [Open-TYNDP]({OTYNDP})), for Germany, Austria and Switzerland. The script `extract_tyndp.py` in this repository extracts it from the TYNDP download. First, the market-node electricity demand, in MW, the base unit of PyPSA:
+The file `data/tyndp2026-nt2035-hourly-demand-wind-solar.csv` holds hourly time series of [TYNDP 2026]({TYNDP}) National Trends+ 2035, WS032 (as in [Open-TYNDP]({OTYNDP})), for Germany, Austria and Switzerland. The script `scripts/extract_tyndp.py` in this repository extracts it from the TYNDP download. First, the market-node electricity demand, in MW, the base unit of PyPSA:
 """,
 )
 

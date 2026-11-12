@@ -16,7 +16,7 @@ Installed capacities (MW) come from the PEMMDB 2.X National Trends files, sheets
 "Photovoltaic e-market". They exclude shared-RES and dedicated H2 capacity and, for DE, the
 rooftop PV that PEMMDB lists separately and that sits on the prosumer node.
 
-Usage: python extract_tyndp.py PATH-TO-TYNDP-2026-PACKAGE  (needs pandas and openpyxl)
+Usage: python scripts/extract_tyndp.py PATH-TO-TYNDP-2026-PACKAGE  (needs pandas and openpyxl)
 """
 
 import sys
@@ -65,7 +65,7 @@ EXPECTED_CAPACITY_MW = {
     "CH solar": 580,
 }
 HOURS = 8760
-DATA_DIR = Path(__file__).resolve().parent / "data"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 OUTPUT = DATA_DIR / f"tyndp2026-nt{YEAR}-hourly-demand-wind-solar.csv"
 OUTPUT_PEMMDB = DATA_DIR / f"tyndp2026-nt{YEAR}-wind-solar-capacity.csv"
 
