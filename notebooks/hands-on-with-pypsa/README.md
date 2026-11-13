@@ -58,17 +58,41 @@ Check the version with `python --version` once the environment is active: it mus
 
 ## 3 · Run the notebook
 
+Use option A or B with the environment of step 2. Option C is a fallback if the local installation fails.
+
+In all options, open `hands-on-pypsa-components.ipynb` and run the cells with **Shift + Enter**.
+
+**Option A · VS Code**
+
+1. Install the **Python** and **Jupyter** extensions of VS Code.
+2. Open the folder of this repository (**File › Open Folder**).
+3. Open the notebook and select the `.venv` kernel (**Select Kernel**, top right).
+
+**Option B · JupyterLab**
+
 With the environment active, run:
 
 ```bash
 jupyter lab
 ```
 
-JupyterLab opens in your browser. Open `hands-on-pypsa-components.ipynb` and run the cells with **Shift + Enter**. To come back later, activate the environment again and run `jupyter lab`.
+JupyterLab opens in your browser. Open `hands-on-pypsa-components.ipynb` in the file browser on the left. To come back later, activate the environment again and run `jupyter lab`.
 
-In VS Code, open the folder, open the notebook and select the `.venv` kernel (**Select Kernel**, top right).
+**Option C (fallback) · Google Colab**
 
-The notebook also runs on [Google Colab](https://colab.research.google.com/), provided you install the packages of `requirements.txt` and upload the `data/` folder.
+Colab runs the notebook on Google servers, in the browser, without local installation. A Google account is required.
+
+1. Open the [notebook in Colab](https://colab.research.google.com/github/open-energy-transition/entsoe-training/blob/main/notebooks/hands-on-with-pypsa/hands-on-pypsa-components.ipynb).
+2. Insert a code cell at the top and run it. It downloads this repository, with `data/`, installs the packages and moves into the notebook folder:
+
+   ```python
+   !git clone https://github.com/open-energy-transition/entsoe-training.git
+   %cd entsoe-training
+   !pip install -r requirements.txt
+   %cd notebooks/hands-on-with-pypsa
+   ```
+
+3. If Colab asks to restart the session, restart it, then run `%cd entsoe-training/notebooks/hands-on-with-pypsa` again.
 
 ## Troubleshooting
 

@@ -87,7 +87,13 @@ md(
     f"""
 ## Setup
 
-Install the environment as described in the [README]({REPO}#readme) of the training repository. The notebook also runs on [Google Colab](https://colab.research.google.com/). The solver is HiGHS (open source, no licence needed).
+Run this notebook with one of these options. The [README]({REPO}#readme) of the training repository describes each of them.
+
+1. **VS Code**, with the local environment of the README.
+2. **JupyterLab**, with the same local environment.
+3. Fallback if the local installation fails: **[Google Colab](https://colab.research.google.com/)**, in the browser.
+
+The solver is HiGHS (open source, no licence needed).
 """,
 )
 
