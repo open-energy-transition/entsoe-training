@@ -1,0 +1,8 @@
+generator,p_nom_max
+DE onwind,156055
+DE offwind,50089
+DE solar,135941
+AT onwind,10000
+AT solar,20500
+CH onwind,252
+CH solar,580
