@@ -16,7 +16,7 @@ def main(input_data: pd.DataFrame) -> pd.DataFrame:
     ts = input_data
 
     # Average over blocks of 6 hours, to save some time.
-    # Careful: build_model_4.py has its own RESOLUTION. If you change one and
+    # Careful: 4_build_model.py has its own RESOLUTION. If you change one and
     # not the other, the snapshot weightings no longer match the time series
     # and the model is silently wrong. A single config value avoids this.
 

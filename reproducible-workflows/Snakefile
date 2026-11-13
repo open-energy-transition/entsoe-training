@@ -9,17 +9,17 @@ rule get_data:
         "data/costs_2035.csv",
         "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv",
         "data/tyndp2026-nt2035-wind-solar-capacity.csv"
-    script: "scripts/get_data_1.py"
+    script: "scripts/1_get_data.py"
 
 rule get_costs:
     input: "data/costs_2035.csv"
     output: "data/costs.csv"
-    script: "scripts/get_costs_2.py"
+    script: "scripts/2_get_costs.py"
 
 rule get_timeseries:
     input: "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv"
     output: "data/timeseries.csv"
-    script: "scripts/get_timeseries_3.py"
+    script: "scripts/3_get_timeseries.py"
 
 rule build_model:
     input:
@@ -27,14 +27,14 @@ rule build_model:
         costs=rules.get_costs.output,
         p_nom_max="data/tyndp2026-nt2035-wind-solar-capacity.csv"
     output: "results/cem.nc"
-    script: "scripts/build_model_4.py"
+    script: "scripts/4_build_model.py"
 
 rule solve:
     input: rules.build_model.output
     output: "results/solved_cem.nc"
-    script: "scripts/solve_5.py"
+    script: "scripts/5_solve.py"
 
 rule plot:
     input: rules.solve.output
     output: "results/figure.png"
-    script: "scripts/plot_6.py"
+    script: "scripts/6_plot.py"

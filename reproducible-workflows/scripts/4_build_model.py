@@ -16,7 +16,7 @@ import pandas as pd
 # %%
 pypsa.options.params.optimize.include_objective_constant = False
 
-# Must match the resolution in get_timeseries_3.py
+# Must match the resolution in 3_get_timeseries.py
 RESOLUTION = 6
 
 
