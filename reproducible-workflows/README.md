@@ -1,4 +1,6 @@
-# Snakemake and Workflow Examples
+# ENTSO-E training · Workflows Demonstration Examples
+
+Material for the session "Reproducible and automatable workflows" of the ENTSO-E training by [Open Energy Transition](https://openenergytransition.org), 17 November 2026.
 
 The contents of this folder are derived from Fabian Neumann's excellent
 [Data Science for Energy System Modelling](https://fneum.github.io/data-science-for-esm/)
