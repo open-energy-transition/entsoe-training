@@ -4,6 +4,11 @@ You've "inherited" the `PlantStats.py` script from a colleague who has recently 
 
 Apparently, the script computes some useful statistics for your annual report, from the data provided in `plants.csv`.
 
+First, create and activate the conda environment:
+
+    conda env create -f environment.yaml
+    conda activate quality
+
 Your task is to:
 
 1. run the script and work out if it's doing what it should do (hint: `python PlantStats.py plants.csv`)
