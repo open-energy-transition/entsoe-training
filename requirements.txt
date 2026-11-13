@@ -1,0 +1,6 @@
+pypsa==1.4.0
+linopy==0.10.1
+highspy==1.15.1
+pandas==3.1.1
+jupyterlab==4.6.6
+matplotlib==3.11.2
