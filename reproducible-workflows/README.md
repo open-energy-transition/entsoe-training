@@ -14,17 +14,41 @@ as a precurser to using a workflow automation tool such as snakemake.
 `PyPSA-cem.py` is the model of the [Hands on with PyPSA components](../notebooks/hands-on-with-pypsa/hands-on-pypsa-components.ipynb)
 notebook (Germany, Austria and Switzerland, TYNDP 2026 data) as one monolithic script.
 
-## Installation
+## 1 · Create the environment
 
-Install the packages, including snakemake, into a fresh environment:
+Open a terminal in the folder of this repository and run the block for your system. It creates a virtual environment `.venv` and installs the pinned packages of `requirements.txt`. If Python is missing, install it from [python.org](https://www.python.org/downloads/); on Windows, keep the **py launcher** option ticked.
 
-```sh
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+**Windows, Command Prompt (`cmd`)**
+
+```bat
+py -3 -m venv .venv
+.venv\Scripts\activate.bat
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-## Running the workflow
+**Windows, PowerShell**
+
+```powershell
+py -3 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+**macOS and Linux**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Check the version with `python --version` once the environment is active: it must be 3.11, 3.12 or 3.13. If not, recreate `.venv` with a supported version (on Windows, for example, `py -3.12 -m venv .venv`).
+
+
+## 2 · Running the workflow
 
 Run all commands from this folder:
 
