@@ -23,6 +23,25 @@ REPO = "https://github.com/open-energy-transition/entsoe-training"
 TYNDP = "https://2026.entsos-tyndp-scenarios.eu/download/"
 OTYNDP = "https://github.com/open-energy-transition/open-tyndp/tree/tyndp-2026"
 
+PAGES = {
+    "Network": "design/#network-object",
+    "Bus": "components/buses/",
+    "Carrier": "components/carriers/",
+    "Load": "components/loads/",
+    "Generator": "components/generators/",
+    "StorageUnit": "components/storage-units/",
+    "Store": "components/stores/",
+    "Link": "components/links/",
+    "Process": "components/processes/",
+    "Line": "components/lines/",
+    "GlobalConstraint": "components/global-constraints/",
+}
+
+
+def doc(component: str) -> str:
+    return f"[`{component}`]({UG}/{PAGES[component]})"
+
+
 cells: list = []
 
 
@@ -46,16 +65,29 @@ ENTSO-E training · Tuesday 17 November 2026
 """,
 )
 
+COMPONENTS = [
+    "Network",
+    "Bus",
+    "Load",
+    "Generator",
+    "StorageUnit",
+    "Store",
+    "Link",
+    "Process",
+    "Line",
+]
+
 md(
     "objectives",
-    """
-:::{note} At the end of this notebook, you will be able to:
-
-1. Build a simple sector-coupled model with capacity expansion.
-2. Use PyPSA components (`Network`, `Bus`, `Load`, `Generator`, `StorageUnit`, `Store`, `Link`, `Process`, `Line`) to construct a model.
-3. Use component parameters to define intended behaviours via constraints.
-4. Explore the underlying optimisation problem created in linopy.
-:::
+    f"""
+> **Note**
+>
+> At the end of this notebook, you will be able to:
+>
+> 1. Build a simple sector-coupled model with capacity expansion.
+> 2. Use PyPSA components ({", ".join(map(doc, COMPONENTS))}) to construct a model.
+> 3. Use component parameters to define intended behaviours via constraints.
+> 4. Explore the underlying optimisation problem created in linopy.
 """,
 )
 
@@ -71,13 +103,13 @@ This notebook follows the course [Data Science for Energy System Modelling]({DSE
 | 3 | Parameters as constraints, and the grid | A CO₂ limit and its price |
 | 4 | Under the hood: linopy | A higher renewable share |
 
-:::{{note}}
-For details on any component, see the [PyPSA documentation](https://docs.pypsa.org).
-:::
+> **Note**
+>
+> Each component name in this notebook links to its page in the [PyPSA user guide]({UG}/components/). Each page lists all attributes of the component, with their unit, default and description.
 
-:::{{warning}}
-This is a stylised model for learning. Its numbers are not TYNDP results: one weather scenario of the TYNDP for 2035, greenfield, three countries, one node per country.
-:::
+> **Warning**
+>
+> This is a stylised model for learning. Its numbers are not TYNDP results: one weather scenario of the TYNDP for 2035, greenfield, three countries, one node per country.
 """,
 )
 
@@ -87,7 +119,7 @@ md(
     f"""
 ## Setup
 
-Run this notebook with one of these options. The [README]({REPO}#readme) of the training repository describes each of them.
+Run this notebook with one of these options. The [README]({REPO}/tree/main/notebooks/hands-on-with-pypsa#readme) of the training repository describes each of them.
 
 1. **VS Code**, with the local environment of the README.
 2. **JupyterLab**, with the same local environment.
@@ -294,13 +326,13 @@ such that
 
 | Symbol | Meaning | Component | Attribute |
 |---|---|---|---|
-| $t$, $w_t$ | snapshot and its weighting in hours | `Network` | `snapshots`, `snapshot_weightings` |
-| $d_t$ | demand | `Load` | `p_set` |
-| $g_{{s,t}}$, $G_s$ | dispatch and capacity of generator $s$ | `Generator` | `p`, `p_nom` |
-| $\\hat{{g}}_{{s,t}}$ | capacity factor | `Generator` | `p_max_pu` |
-| $o_s$, $c_s$ | marginal cost and annualised capital cost | `Generator` | `marginal_cost`, `capital_cost` |
-| $G_r$, $h_r$, $\\eta_r$, $c_r$ | power capacity, hours at full power, efficiency and annualised capital cost of storage unit $r$ | `StorageUnit` | `p_nom`, `max_hours`, `efficiency_store`/`_dispatch`, `capital_cost` |
-| $e_{{r,t}}$ | state of charge | `StorageUnit` | `state_of_charge` |
+| $t$, $w_t$ | snapshot and its weighting in hours | {doc("Network")} | `snapshots`, `snapshot_weightings` |
+| $d_t$ | demand | {doc("Load")} | `p_set` |
+| $g_{{s,t}}$, $G_s$ | dispatch and capacity of generator $s$ | {doc("Generator")} | `p`, `p_nom` |
+| $\\hat{{g}}_{{s,t}}$ | capacity factor | {doc("Generator")} | `p_max_pu` |
+| $o_s$, $c_s$ | marginal cost and annualised capital cost | {doc("Generator")} | `marginal_cost`, `capital_cost` |
+| $G_r$, $h_r$, $\\eta_r$, $c_r$ | power capacity, hours at full power, efficiency and annualised capital cost of storage unit $r$ | {doc("StorageUnit")} | `p_nom`, `max_hours`, `efficiency_store`/`_dispatch`, `capital_cost` |
+| $e_{{r,t}}$ | state of charge | {doc("StorageUnit")} | `state_of_charge` |
 
 See the [PyPSA optimisation overview]({UG}/optimization/overview/) for the full problem.
 """,
@@ -313,9 +345,40 @@ code("network", "n = pypsa.Network()")
 md(
     "box-md",
     """
-:::{note} A network is a box
-Think of the `Network` as an empty box. Each component you add puts a new feature in the box: a bus is a place where energy must balance, a load a demand, a generator a supply option. PyPSA turns the content of the box into an optimisation problem.
-:::
+> **A network is a box**
+>
+> Think of the `Network` as an empty box. Each component you add puts a new feature in the box: a bus is a place where energy must balance, a load a demand, a generator a supply option. PyPSA turns the content of the box into an optimisation problem.
+""",
+)
+
+md(
+    "attrs-md",
+    f"""
+**Reading attribute names.** PyPSA builds attribute names from short parts. Once you know them, `p_nom_max` reads as "the maximum of the nominal power":
+
+| Part | Meaning | Example |
+|---|---|---|
+| `p` | active power, in MW | `p`: dispatch of a generator in each snapshot |
+| `e` | energy, in MWh | `e`: filling level of a store |
+| `s` | apparent power of a line, in MVA | `s_nom`: line capacity |
+| `_nom` | nominal value: the capacity | `p_nom`: generator capacity |
+| `_extendable` | the optimisation chooses the capacity | `p_nom_extendable=True` |
+| `_min`, `_max` | lower and upper limit | `p_nom_max`: capacity limit |
+| `_pu` | per unit of the capacity | `p_max_pu`: capacity factor |
+| `_set` | fixed value | `p_set`: demand of a load |
+| `_opt` | optimised value, an output | `p_nom_opt`: optimised capacity |
+| `0`, `1` | end of a branch: `bus0`, `bus1` | `p0`: power that a link draws from `bus0` |
+
+Static attributes sit in a table such as `n.generators`, time series in `n.generators_t`. See the PyPSA [unit]({UG}/design/#unit-conventions) and [sign]({UG}/design/#sign-conventions) conventions. Each component also describes its own attributes:
+""",
+)
+
+code(
+    "attrs",
+    """
+attrs = ["p_nom", "p_nom_extendable", "p_nom_max", "p_max_pu", "marginal_cost", "capital_cost"]
+with pd.option_context("display.max_colwidth", None):
+    display(n.components.generators.defaults.loc[attrs, ["unit", "default", "description"]])
 """,
 )
 
@@ -342,7 +405,7 @@ n.snapshot_weightings.head(3)
 
 md(
     "carriers-md",
-    "We add the technologies as carriers, with a colour for plots and their CO₂ emissions in t per MWh of fuel. PyPSA warns about components whose carrier is not defined:",
+    f"We add the technologies as {doc('Carrier')} components, with a colour for plots and their CO₂ emissions in t per MWh of fuel. PyPSA warns about components whose carrier is not defined:",
 )
 
 code(
@@ -494,9 +557,9 @@ md(
 
 What if you could build only solar or only wind? Load the network of Step 1, remove a generator and re-optimise. Compare the capacities and the system cost with Step 1.
 
-:::{{hint}}
-`n_task = pypsa.Network("network-step1.nc")` loads the network. `n_task.remove("Generator", "DE solar")` removes a component: give its type and its name, or a list of names. Germany has two wind generators.
-:::
+> **Hint**
+>
+> `n_task = pypsa.Network("network-step1.nc")` loads the network. `n_task.remove("Generator", "DE solar")` removes a component: give its type and its name, or a list of names. Germany has two wind generators.
 
 *Source: [PyPSA: Capacity Expansion]({CEM}), Task 3.*
 """,
@@ -524,20 +587,20 @@ such that
 
 | Symbol | Meaning | Component | Attribute |
 |---|---|---|---|
-| $i$ | bus, one per energy carrier | `Bus` | `carrier` |
-| $t$, $w_t$ | snapshot and its weighting in hours, as in Step 1 | `Network` | `snapshots`, `snapshot_weightings` |
-| $d_{{i,t}}$, $g_{{i,s,t}}$ | demand and generation at bus $i$ | `Load`, `Generator` | `p_set`, `p` |
-| $p_{{k,t}}$, $P_k$ | dispatch and capacity of converter $k$ | `Link` / `Process` | `p0` / `p`, `p_nom` |
-| $\\eta_{{i,k}}$ | rate of converter $k$ at bus $i$ | `Link` / `Process` | `efficiency` / `rate0`, `rate1` |
-| $e_{{q,t}}$, $E_q$ | filling level and energy capacity of store $q$ | `Store` | `e`, `e_nom` |
-| $c_k$, $c_q$ | annualised capital costs | `Link`, `Process`, `Store` | `capital_cost` |
+| $i$ | bus, one per energy carrier | {doc("Bus")} | `carrier` |
+| $t$, $w_t$ | snapshot and its weighting in hours, as in Step 1 | {doc("Network")} | `snapshots`, `snapshot_weightings` |
+| $d_{{i,t}}$, $g_{{i,s,t}}$ | demand and generation at bus $i$ | {doc("Load")}, {doc("Generator")} | `p_set`, `p` |
+| $p_{{k,t}}$, $P_k$ | dispatch and capacity of converter $k$ | {doc("Link")} / {doc("Process")} | `p0` / `p`, `p_nom` |
+| $\\eta_{{i,k}}$ | rate of converter $k$ at bus $i$ | {doc("Link")} / {doc("Process")} | `efficiency` / `rate0`, `rate1` |
+| $e_{{q,t}}$, $E_q$ | filling level and energy capacity of store $q$ | {doc("Store")} | `e`, `e_nom` |
+| $c_k$, $c_q$ | annualised capital costs | {doc("Link")}, {doc("Process")}, {doc("Store")} | `capital_cost` |
 
 PyPSA has two components for converters:
 
 - **`Link`**: $p_{{k,t}}$ is the input at `bus0`, so $\\eta_{{\\text{{bus0}},k}} = -1$ and $\\eta_{{\\text{{bus1}},k}}$ = `efficiency`.
 - **`Process`** (since PyPSA 1.2.0, April 2026): you set every rate yourself, `rate0`, `rate1`, … The bus with rate $\\pm 1$ sets the unit of $p_{{k,t}}$, $P_k$ and the costs.
 
-[`Process`]({UG}/components/processes/) is an alternative to [`Link`]({UG}/components/links/), not a replacement: both give the same model. We build the electrolysis as a `Process` and the fuel cell as a `Link`, so you see both. The costs and efficiencies come from the assumptions loaded above. The hydrogen storage is an underground salt cavern.
+{doc("Process")} is an alternative to {doc("Link")}, not a replacement: both give the same model. We build the electrolysis as a `Process` and the fuel cell as a `Link`, so you see both. The costs and efficiencies come from the assumptions loaded above. The hydrogen storage is an underground salt cavern.
 
 *Source: [PyPSA: Sector-Coupling]({SC}), MIT/CC-BY-4.0.*
 """,
@@ -676,9 +739,9 @@ md(
 
 Assume underground hydrogen storage is not available. Load `network-step2.nc`, increase the cost of hydrogen storage by a factor of 10 and re-optimise. How does the model react?
 
-:::{{hint}}
-The static table `n_task.stores` holds the cost. Change it with `n_task.stores.loc["DE hydrogen storage", "capital_cost"] *= 10`.
-:::
+> **Hint**
+>
+> The static table `n_task.stores` holds the cost. Change it with `n_task.stores.loc["DE hydrogen storage", "capital_cost"] *= 10`.
 
 *Source: [PyPSA: Sector-Coupling]({SC}), Task 1.*
 """,
@@ -707,12 +770,12 @@ such that
 
 | Symbol | Meaning | Component | Attribute |
 |---|---|---|---|
-| $f_{{\\ell,t}}$, $F_\\ell$ | flow and capacity of line $\\ell$ | `Line` | `p0`, `s_nom` |
-| $x_\\ell$ | reactance | `Line` | `x`, from `type` and `length` |
-| $c_\\ell$ | annualised capital cost | `Line` | `capital_cost` |
-| $K_{{i\\ell}}$ | $+1$ if line $\\ell$ starts at bus $i$, $-1$ if it ends there | `Line` | `bus0`, `bus1` |
-| $C_{{\\ell c}}$ | $\\pm 1$ if line $\\ell$ is in loop $c$ | `Network` | computed by PyPSA |
-| $G_{{i,s}}$, $\\overline{{G}}_{{i,s}}$ | capacity of generator $s$ at bus $i$ and its maximum | `Generator` | `p_nom`, `p_nom_max` |
+| $f_{{\\ell,t}}$, $F_\\ell$ | flow and capacity of line $\\ell$ | {doc("Line")} | `p0`, `s_nom` |
+| $x_\\ell$ | reactance | {doc("Line")} | `x`, from `type` and `length` |
+| $c_\\ell$ | annualised capital cost | {doc("Line")} | `capital_cost` |
+| $K_{{i\\ell}}$ | $+1$ if line $\\ell$ starts at bus $i$, $-1$ if it ends there | {doc("Line")} | `bus0`, `bus1` |
+| $C_{{\\ell c}}$ | $\\pm 1$ if line $\\ell$ is in loop $c$ | {doc("Network")} | computed by PyPSA |
+| $G_{{i,s}}$, $\\overline{{G}}_{{i,s}}$ | capacity of generator $s$ at bus $i$ and its maximum | {doc("Generator")} | `p_nom`, `p_nom_max` |
 
 In PyPSA, you rarely write a constraint yourself. You set a component parameter, and PyPSA writes the constraint:
 
@@ -882,19 +945,19 @@ Load `network-step3.nc`, cut the emissions by 30 % (limit them to `0.7 * co2`) a
 
 The CO₂ price is the **dual value** (shadow price) of the limit: the change in system cost when its right-hand side grows by one unit, here one tonne. A larger right-hand side relaxes a `<=` constraint and lowers the cost, so its dual is negative. PyPSA stores it in `n_task.global_constraints.mu`, in €/t.
 
-:::{{hint}}
-A `GlobalConstraint` limits the sum of an attribute over the network. With `carrier_attribute="co2_emissions"`, PyPSA multiplies the `co2_emissions` of each carrier by its fuel use:
-
-```python
-n_task.add(
-    "GlobalConstraint",
-    "CO2Limit",
-    carrier_attribute="co2_emissions",
-    sense="<=",
-    constant=...,  # t
-)
-```
-:::
+> **Hint**
+>
+> A {doc("GlobalConstraint")} limits the sum of an attribute over the network. With `carrier_attribute="co2_emissions"`, PyPSA multiplies the `co2_emissions` of each carrier by its fuel use:
+>
+> ```python
+> n_task.add(
+>     "GlobalConstraint",
+>     "CO2Limit",
+>     carrier_attribute="co2_emissions",
+>     sense="<=",
+>     constant=...,  # t
+> )
+> ```
 
 *Source: [PyPSA: Capacity Expansion]({CEM}), "Adding emission limits".*
 """,
@@ -971,9 +1034,9 @@ m.add_constraints(lhs >= rhs, name="RES-share")
 md(
     "export-note",
     """
-:::{warning}
-`export_to_netcdf` saves the components and the results, not the linopy model. A custom constraint is lost when you save and reload the network: add it again after `create_model()`, as Task 4 does. A `GlobalConstraint` (Task 3) is a component, so it is saved. See [PyPSA issue #2014](https://github.com/PyPSA/PyPSA/issues/2014).
-:::
+> **Warning**
+>
+> `export_to_netcdf` saves the components and the results, not the linopy model. A custom constraint is lost when you save and reload the network: add it again after `create_model()`, as Task 4 does. A `GlobalConstraint` (Task 3) is a component, so it is saved. See [PyPSA issue #2014](https://github.com/PyPSA/PyPSA/issues/2014).
 """,
 )
 
@@ -1033,9 +1096,9 @@ md(
 
 Rebuild the model from `network-step3.nc` with $\\alpha = 0.75$ and solve it. How do the dual value, the system cost and the electricity prices change? Add the German prices at $\\alpha = 0.75$ to the price duration curve.
 
-:::{{hint}}
-Repeat the three calls of this step: `create_model()`, `add_constraints(...)`, `solve_model()`. Add a column to the `pdc` table, sorted like the others, and plot it again.
-:::
+> **Hint**
+>
+> Repeat the three calls of this step: `create_model()`, `add_constraints(...)`, `solve_model()`. Add a column to the `pdc` table, sorted like the others, and plot it again.
 
 *Source: [Linopy]({LP}), Exercises.*
 """,
@@ -1056,7 +1119,7 @@ md(
 | ✓ | 3 · Parameters as constraints, and the grid | Define behaviour with parameters; add `Line`s |
 | ✓ | 4 · Under the hood: linopy | Read the optimisation problem, add a constraint, read its dual |
 
-**Further learning.** Heat and transport in [PyPSA: Sector-Coupling]({SC}). The full course: [Data Science for Energy System Modelling]({DSESM}/intro/).
+**Further learning.** Heat and transport in [PyPSA: Sector-Coupling]({SC}). See also an open course on [Data Science for Energy System Modelling]({DSESM}/intro/).
 """,
 )
 
@@ -1066,9 +1129,9 @@ md(
     """
 # Solutions
 
-:::{warning}
-Try the tasks first.
-:::
+> **Warning**
+>
+> Try the tasks first.
 """,
 )
 
