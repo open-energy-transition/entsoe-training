@@ -1,6 +1,4 @@
 import pypsa
-import os
-
 
 def main(network: pypsa.Network) -> pypsa.Network:
     """Solve the network"""

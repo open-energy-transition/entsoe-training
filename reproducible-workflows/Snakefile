@@ -1,81 +1,40 @@
-import os
+# The first rule is the default target: ``snakemake --cores 1`` runs the whole workflow.
+# You can run ``snakemake -call all`` to call the "all" rule.
+
+rule all:
+    input: "results/figure.png"
 
 rule get_data:
     output:
-        "data/costs_2030.csv",
-        "data/time-series-lecture-2.csv"
-    shell: "python scripts/get_data.py"
+        "data/costs_2035.csv",
+        "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv",
+        "data/tyndp2026-nt2035-wind-solar-capacity.csv"
+    script: "scripts/get_data_1.py"
 
 rule get_costs:
-    input: "data/costs_2030.csv"
+    input: "data/costs_2035.csv"
     output: "data/costs.csv"
-    shell: "python scripts/get_costs.py"
+    script: "scripts/get_costs_2.py"
 
 rule get_timeseries:
-    input: "data/time-series-lecture-2.csv"
+    input: "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv"
     output: "data/timeseries.csv"
-    # Using script, the Python module is imported into the same
-    # namespace as Snakemake see https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#external-scripts
-    script: "scripts/get_timeseries.py"
+    script: "scripts/get_timeseries_3.py"
 
 rule build_model:
     input:
         ts=rules.get_timeseries.output,
-        costs=rules.get_costs.output
-    output:
-        "results/cem.nc"
-    shell: "python scripts/build_model.py"
-
-rule add_constraint:
-    input:
-        rules.build_model.output
-    output:
-        "results/cem_{CO2}.nc"
-    # ``run:`` places the code directly into the Snakefile.  Careful!
-    run:
-        import pypsa
-        network = pypsa.Network(str(input[0]))
-        network.global_constraints.loc["CO2Limit", "constant"] = float(wildcards.CO2) * 1e6
-        network.export_to_netcdf(str(output[0]))
+        costs=rules.get_costs.output,
+        p_nom_max="data/tyndp2026-nt2035-wind-solar-capacity.csv"
+    output: "results/cem.nc"
+    script: "scripts/build_model_4.py"
 
 rule solve:
-    input:
-        rules.add_constraint.output
-    output:
-        "results/solved_cem_{CO2}.nc"
-    script: "scripts/solve.py"
-
-rule aggregation:
-    input:
-        ["results/solved_cem_{emission}.nc".format(emission=emission) for emission in [150, 100, 50, 25, 0]]
-    output:
-        "results/statistics.csv"
-    # This code should really be placed into a module rather than embedded in the snakefile.
-    # Note how the ``run:`` command doesn't require quotation marks. Wildcards are accessed directly without
-    # curly brackets `{}`
-    # The code is run here in the Snakefile.
-    run:
-        import pypsa
-        import pandas as pd
-        sensitivity = {}
-        for network_path in input:
-            n = pypsa.Network(network_path)
-             # Hacky line which extract the CO2 emission.
-            emissions = n.global_constraints.loc["CO2Limit", "constant"] / 1e6
-             # This could be avoided by adding a separate rule to extract statistics from each model run before an aggregation step
-            sensitivity[str(emissions)] = (pd.concat([n.statistics.capex(), n.statistics.opex()])
-            .groupby("carrier")
-            .sum()
-            .div(1e9))
-        df = pd.DataFrame(sensitivity).T
-        df.to_csv(str(output))
+    input: rules.build_model.output
+    output: "results/solved_cem.nc"
+    script: "scripts/solve_5.py"
 
 rule plot:
     input: rules.solve.output
-    output: "results/figure_{CO2}.png"
-    shell: "python scripts/plot.py {input} {output}"
-
-rule all:
-    input:
-        plots = expand("results/figure_{CO2}.png", CO2=[150, 100, 50, 25, 0]),
-        stats = rules.aggregation.output
+    output: "results/figure.png"
+    script: "scripts/plot_6.py"

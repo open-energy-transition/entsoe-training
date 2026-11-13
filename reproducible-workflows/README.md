@@ -10,3 +10,28 @@ Specifically, the contents of the `scripts` folder contain modularised versions 
 [PyPSA Capacity Expansion Modelling](https://fneum.github.io/data-science-for-esm/dsesm/workshop-pypsa-cem/)
 lecture/notebook and have been reworked to demonstrate how a monolithic script can be broken up into components
 as a precurser to using a workflow automation tool such as snakemake.
+
+`PyPSA-cem.py` is the model of the [Hands on with PyPSA components](../notebooks/hands-on-with-pypsa/hands-on-pypsa-components.ipynb)
+notebook (Germany, Austria and Switzerland, TYNDP 2026 data) as one monolithic script.
+
+## Installation
+
+Install the packages, including snakemake, into a fresh environment:
+
+```sh
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Running the workflow
+
+Run all commands from this folder:
+
+```sh
+python PyPSA-cem.py                # 1) To run monolithic script
+bash python-commands-example.sh     # 2) To run modular scripts, one by one
+make                                # 3) Run workflow using Makefile
+snakemake --cores 1                 # 4) Run workflow using Snakefile
+```
+
