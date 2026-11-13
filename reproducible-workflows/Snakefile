@@ -1,0 +1,40 @@
+# The first rule is the default target: ``snakemake --cores 1`` runs the whole workflow.
+# You can run ``snakemake -call all`` to call the "all" rule.
+
+rule all:
+    input: "results/figure.png"
+
+rule get_data:
+    output:
+        "data/costs_2035.csv",
+        "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv",
+        "data/tyndp2026-nt2035-wind-solar-capacity.csv"
+    script: "scripts/1_get_data.py"
+
+rule get_costs:
+    input: "data/costs_2035.csv"
+    output: "data/costs.csv"
+    script: "scripts/2_get_costs.py"
+
+rule get_timeseries:
+    input: "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv"
+    output: "data/timeseries.csv"
+    script: "scripts/3_get_timeseries.py"
+
+rule build_model:
+    input:
+        ts=rules.get_timeseries.output,
+        costs=rules.get_costs.output,
+        p_nom_max="data/tyndp2026-nt2035-wind-solar-capacity.csv"
+    output: "results/cem.nc"
+    script: "scripts/4_build_model.py"
+
+rule solve:
+    input: rules.build_model.output
+    output: "results/solved_cem.nc"
+    script: "scripts/5_solve.py"
+
+rule plot:
+    input: rules.solve.output
+    output: "results/figure.png"
+    script: "scripts/6_plot.py"
