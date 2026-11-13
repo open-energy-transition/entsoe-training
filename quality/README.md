@@ -1,6 +1,6 @@
 # Code quality
 
-You've "inherited" the `PlantStats.py` script from a colleague who has recently left your organistion for a round-the-world backpacking trip.
+You've "inherited" the `PlantStats.py` script from a colleague who has recently left your organisation for a round-the-world backpacking trip.
 
 Apparently, the script computes some useful statistics for your annual report, from the data provided in `plants.csv`.
 
