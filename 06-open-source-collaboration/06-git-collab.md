@@ -3,7 +3,7 @@
 - **Instructor:** Will Usher
 - **Length:** 150 minutes, including a 10-minute break
 - **Audience:** junior data analysts and energy modellers
-- **Running example:** learners build the lesson's own `recipes` repo (`guacamole.md`, `groceries.md`, `hummus.md`), then explore the real history of the `git-novice` lesson
+- **Running example:** learners build the lesson's own `recipes` repo (`guacamole.md`, `groceries.md`, `hummus.md`), then explore the real history of [PyPSA](https://github.com/PyPSA/PyPSA), an open-source energy system modelling tool
 
 > **Attribution**
 >
@@ -17,14 +17,14 @@
 > - The running example is the original recipe example. Each edit is one to three lines, so learners spend their time on git, not on typing.
 > - Episodes 1 to 9 are condensed into a 150-minute refresher. Episodes 10 to 14 are dropped.
 > - SSH key setup moves to a pre-course checklist.
-> - Two blocks are new: "Branches and pull requests" and "Explore a real project", which digs into the history of the `git-novice` lesson itself.
+> - Two blocks are new: "Branches and pull requests" and "Explore a real project", which digs into the history of PyPSA.
 > - Instructor tips are adapted from the lesson's [instructor notes](https://swcarpentry.github.io/git-novice/instructor/instructor-notes.html).
 
 ## Contents
 
 - [Instructor prep](#instructor-prep)
 - [Block 8. Branches and pull requests](#block-8-branches-and-pull-requests-20-min)
-- [Block 9. Exploring a real repository](#block-9-explore-a-real-project-15-min)
+- [Block 9. Exploring a real repository](#block-9-explore-a-real-project-pypsa-15-min)
 - [Block 10. Wrap-up](#block-10-wrap-up-5-min)
 
 ## Schedule
@@ -40,7 +40,7 @@
 1. Test the network and the projector. Make the terminal font big.
 2. Use a short prompt: `export PS1='$ '`.
 3. Make a second folder for solo demos of blocks 6 and 7: you will clone your own repo as `~/Desktop/recipes-at-work`.
-4. Clone the lesson repo in a second terminal: `git clone https://github.com/swcarpentry/git-novice.git`. You show its `.gitignore` in block 4, and everyone clones it in block 9.
+4. Clone two repos in a second terminal: `git clone https://github.com/swcarpentry/git-novice.git` and `git clone https://github.com/PyPSA/PyPSA.git`. You show the lesson's `.gitignore` in block 4 and its graph in 8.6. Everyone clones PyPSA in block 9.
 5. Paste each snippet into the chat as you reach it, for anyone who falls behind.
 
 ## Block 8. Branches and pull requests (20 min)
@@ -232,17 +232,18 @@ hint: If you are sure you want to delete it, run 'git branch -D try-garlic'
 
 - `git switch <hash>` refuses to run. `git checkout <hash>` gives a detached HEAD. Go back with `git switch main`.
 - The PR link appears only when pushing to GitHub. It is GitHub's message, not Git's.
-- Keep branches short-lived and small. Long branches are where conflicts come from. Block 9 shows one that lived for 14 months.
+- Keep branches short-lived and small. Long branches are where conflicts come from. Block 9 shows one that needed three catch-up merges from `master` before it landed.
 
 ---
 
-## Block 9. Explore a real project: PyPSA(15 min)
+## Block 9. Explore a real project: PyPSA (15 min)
 
 ### Say
 
 - History is a research tool. It tells you what changed, when, and why.
 - `git log -S`, `git log --follow` and `git blame` answer "where did this come from?".
 - Small commits with clear messages make that research easy.
+- PyPSA is an open-source tool for modelling energy systems. Many of you use it already.
 
 ### 9.1 Clone (2 min)
 
@@ -255,195 +256,209 @@ git log --oneline -5
 ```
 
 ```text
-1770
+3497
 ```
 
 ```text
-d361fe95 Merge pull request #1134 from KevinSpek/fix-dead-links
-d6cf2562 Replace the Code School Try Git suggestion in instructor notes
-78b9c02a Merge pull request #1131 from swcarpentry/update/workflows
-173a9fc0 [actions] update sandpaper workflow to version v1.0.3
-dc212edb [actions] update workbench docker version to v0.2.9 (#1130)
+96253dbf docs: make wind/solar split unique in stochastic example (#2156)
+1b450e9b fix: distribute slack on single-bus sub-networks for all slack weights (#2152)
+0b2a4c84 fix: count storage withdrawal in primary energy and operational limits (#2133)
+d5091d3c fix: support linopy 1.0 next to linopy 0.10 (#2129)
+fdb52bca fix: raise for `committable` on components without unit commitment (#2127)
 ```
 
-Say: 1770 commits since 2013, from hundreds of people. Hashes here have 8 characters, because the repo is large.
+Say: 3497 commits since October 2015, from about 150 authors. The clone is about 80 MB and takes a few seconds on good Wi-Fi. Hashes here have 8 characters, because the repo is large. The `(#2156)` at the end is the pull request number. PyPSA's main branch is called `master`, not `main`.
 
 ### 9.2 The smallest diff (1 min)
 
 ```bash
-git show f1d66b3b
+git show 38c9f418
 ```
 
-````diff
-commit f1d66b3b17d025cd75062b27457b3211b2a79e05
-Author: Ankur Chaurasia <...>
-Date:   Thu Aug 13 11:05:10 2026 +0100
+```diff
+commit 38c9f418cc1a57f64263e00986bbaf080d0d8f8b
+Author: Koen van Greevenbroek <...>
+Date:   Mon Feb 26 14:49:40 2024 +0000
 
-    Fix .gitignore example for pictures folder
+    Fix calculation of MGA cost bound
 
-    Correcting the folder from pictures/data/ to pictures/pie/
+diff --git a/pypsa/optimization/abstract.py b/pypsa/optimization/abstract.py
+index f2aa7170..30412066 100644
+--- a/pypsa/optimization/abstract.py
++++ b/pypsa/optimization/abstract.py
+@@ -377,7 +377,7 @@ def optimize_mga(
+ 
+     # build budget constraint
+     if not multi_investment_periods:
+-        optimal_cost = (n.statistics.capex() + n.statistics.opex()).sum()
++        optimal_cost = n.statistics.capex().sum() + n.statistics.opex().sum()
+         fixed_cost = n.statistics.installed_capex().sum()
+     else:
+         w = n.investment_period_weightings.objective
+```
 
-diff --git a/episodes/06-ignore.md b/episodes/06-ignore.md
-index c73f3101..cc615fca 100644
---- a/episodes/06-ignore.md
-+++ b/episodes/06-ignore.md
-@@ -253,7 +253,7 @@ the contents of pictures folder, but create an exception for the contents of the
-
- ```output
- pictures/*              # ignore everything in pictures folder
--!pictures/pie/          # do not ignore pictures/data/ contents
-+!pictures/pie/          # do not ignore pictures/pie/ contents
- ```
-````
-
-Say: one line, one fix, and a message that says why. It fixes the same `pictures/*` and `!` pattern we used in block 4.
+Say: one line, one fix. MGA explores near-optimal solutions within a cost budget. `+` on two pandas Series lines them up by index first. A row that exists in only one of them becomes NaN, and `.sum()` skips NaN. So costs could drop out of the budget. Summing each one first fixes it. A one-line diff is easy to review, and easy to find again.
 
 ### 9.3 Follow a renamed file (2 min)
 
-`episodes/04-changes.md` is the episode behind block 2. It has been renamed twice. Without `--follow`, its history stops at the last move.
+`pypsa/networks.py` holds the `Network` class, the `n` in `n.optimize()`. It has been renamed five times. Without `--follow`, its history stops at the last move.
 
 ```bash
-git log --oneline episodes/04-changes.md | wc -l
-git log --oneline --follow episodes/04-changes.md | wc -l
-git log --oneline --follow --diff-filter=R --name-status episodes/04-changes.md
+git log --oneline pypsa/networks.py | wc -l
+git log --oneline --follow pypsa/networks.py | wc -l
+git log --oneline --follow --diff-filter=R --name-status pypsa/networks.py
 ```
 
 ```text
-134
+78
 ```
 
 ```text
-143
+412
 ```
 
 ```text
-5177001a Cleaning up existing files before merging new styles
-R100	04-changes.md	episodes/04-changes.md
-394dc878 Rename files to follow new numbering scheme
-R100	03-changes.md	04-changes.md
+c36338c1 feat: introduce component class (#1075)
+R081	pypsa/components.py	pypsa/networks.py
+388a2698 Include a more friendly package format with setup.py etc.
+R100	components.py	pypsa/components.py
+9e15c167 Rename classes.py and remove vresutils dependency
+R100	classes.py	components.py
+0112a5c1 Allow generator capacity to be extended in the model
+R092	network.py	classes.py
+6685547d Renamed classes to network
+R098	classes.py	network.py
 ```
 
-Say: `R100` means a rename with 100% identical content. The file started in 2015 as `03-changes.md`.
+Say: `R100` means a rename with 100% identical content. `R081` means 81% similar: the file moved and changed in the same commit. The file started in 2015 as `classes.py`, and was renamed back and forth on the same day.
 
 ### 9.4 A readable two-file diff (2 min)
 
 ```bash
-git show --stat 15d56848
-git show --word-diff 15d56848 -- episodes/14-supplemental-rstudio.md
+git show --stat 355f4efb
+git show --word-diff -U0 355f4efb
 ```
 
 ```text
-    fixing the names for the changes in more recent commits
+    rename capex_fixed to installed_capex
 
- episodes/07-github.md               | 4 ++--
- episodes/14-supplemental-rstudio.md | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ pypsa/optimization/abstract.py | 2 +-
+ pypsa/statistics.py            | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 ```
 
 ```text
-@@ -82,7 +82,7 @@ to accept the Xcode license if you are using macOS.
 ...
-![](fig/RStudio_screenshot_navigateexisting.png){alt='RStudio window showing the "Create Project From Existing Directory" dialog. In the dialog, the project working directory has been set to [-"~/Desktop/planets"'}-]{+"~/Desktop/recipes"'}+}
+@@ -326 +326 @@ def optimize_mga(
+    fixed_cost = [-n.statistics.capex_fixed().sum()-]{+n.statistics.installed_capex().sum()+}
+...
+@@ -239 +239 @@ class StatisticsAccessor:
+    def [-capex_fixed(self,-]{+installed_capex(self,+} comps=None, aggregate_groups="sum", groupby=None):
 ```
 
-Say: one commit, two files, one idea. Both files still said `planets` in image alt text. The line is long, so a plain diff hides the change. `--word-diff` shows the one word that moved.
+Say: one commit, two files, one idea. It renames a method and its only caller together, so no commit in between is broken. `--word-diff` shows the words that moved, and `-U0` drops the context lines.
 
 ### 9.5 Side note: an ignore rule with an exception (1 min)
 
 ```bash
-git check-ignore -v --no-index site/README.md site/index.html
-git ls-files site
+git check-ignore -v --no-index docs/examples/unit-commitment.ipynb examples/scratch.ipynb
+git ls-files '*.ipynb' | wc -l
+git ls-files 'docs/*.ipynb' | wc -l
 ```
 
 ```text
-.gitignore:4:!site/README.md	site/README.md
-.gitignore:3:site/*	site/index.html
+.gitignore:14:!/docs/**/*.ipynb	docs/examples/unit-commitment.ipynb
+.gitignore:13:*.ipynb	examples/scratch.ipynb
 ```
 
 ```text
-site/README.md
+56
 ```
 
-Say: `git check-ignore -v` names the rule that matches each path. Line 3 ignores the folder contents. Line 4 brings one file back, so `site/README.md` is the only tracked file in `site/`. This is the block 4 challenge in a real repo.
+```text
+56
+```
 
-### 9.6 Where did the recipes come from? (6 min)
+Say: `git check-ignore -v` names the rule that matches each path. The path does not need to exist: `examples/scratch.ipynb` is made up. Line 13 ignores every notebook. Line 14 brings back notebooks anywhere under `docs/`. So all 56 tracked notebooks live in `docs/`. This is the block 4 challenge in a real repo.
+
+### 9.6 Where did `n.optimize()` come from? (6 min)
 
 Learners run these in their clone:
 
 ```bash
-git log -S'guacamole' --oneline -- episodes/04-changes.md
-git show 231fb970^:episodes/04-changes.md | grep -n -m1 mars.txt
-git blame -L 405,407 -L 417,419 episodes/04-changes.md
+git log -S'def optimize(' --oneline -- pypsa
+git show 9e7f1834^:pypsa/components.py | grep -n -e 'def lopf' -e 'import network_lopf'
+git blame -L 30,31 -L 170,170 pypsa/networks.py
 ```
 
 ```text
-1cb39c17 Change challenge commit messages to present tense
-231fb970 🥑-ise the lesson: from planets to recipes
+0e391be4 refactor: remove `v1.0.0` deprecations (#1257)
+9e7f1834 Integrate new optimization module based on linopy (#336)
 ```
 
 ```text
-30:Let's create a file called `mars.txt` that contains some notes
+49:from pypsa.opf import network_lopf, network_opf
+66:    from pypsa.linopf import network_lopf as network_lopf_lowmem
+625:    def lopf(
 ```
 
 ```text
-58775cbeb 03-changes.md          (Ivan Gonzalez      2015-02-22 14:32:21 -0500 405) and into long-term storage.
-58775cbeb 03-changes.md          (Ivan Gonzalez      2015-02-22 14:32:21 -0500 406) First,
-231fb970c episodes/04-changes.md (David Perez-Suarez 2023-07-13 20:17:44 +0100 407) we'll improve our recipe by changing 'lemon' to 'lime':
-21c9dac88 episodes/04-changes.md (David Perez-Suarez 2024-08-14 16:00:30 +0100 417) * avocado
-21c9dac88 episodes/04-changes.md (David Perez-Suarez 2024-08-14 16:00:30 +0100 418) * lime
-21c9dac88 episodes/04-changes.md (David Perez-Suarez 2024-08-14 16:00:30 +0100 419) * salt
+^2fbc2bef classes.py          (Tom Brown    2015-10-12 17:06:19 +0200  30) import numpy as np
+8ec3287d3 classes.py          (Tom Brown    2015-10-13 18:25:06 +0200  31) import pandas as pd
+5f2e4d3f7 pypsa/components.py (Lukas Trippe 2024-08-28 11:28:36 +0200 170)         self.optimize: OptimizationAccessor = OptimizationAccessor(self)
 ```
 
 Say:
 
-- `git log -S` lists commits that add or remove a string. The oldest one, `231fb970`, brought the recipes in.
-- `231fb970^` is its parent. `git show <commit>:<file>` prints the file as it was then. Before the recipes, learners tracked notes about Mars in `mars.txt`.
-- `git blame` follows renames. Lines from 2015 still show the old name `03-changes.md`.
-- `git blame` shows the *last* commit that touched a line. `21c9dac8` only switched list markers from `-` to `*`. To look further back, blame its parent: `git blame -L 362,362 21c9dac8^ -- episodes/04-changes.md` points at `231fb970` again.
+- `git log -S` lists commits that add or remove a string. The oldest one, `9e7f1834`, brought in `optimize`, built on linopy, in October 2022. The newer one removed an old, deprecated function form of it.
+- `9e7f1834^` is its parent. `git show <commit>:<file>` prints the file as it was then. Before `optimize`, you ran `n.lopf()`. It used Pyomo (`pypsa.opf`) or the leaner `pypsa.linopf`.
+- `git blame` follows renames. Lines from 2015 still show the old name `classes.py`. The `^` marks the very first commit.
+- `git blame` shows the *last* commit that touched a line. `5f2e4d3f` only added a type hint. To look further back, blame its parent: `git blame -L 242,242 5f2e4d3f^ -- pypsa/components.py` points at `9e7f1834` again.
 
-### Challenge: when did learners first see the recipes?
+### Challenge: when did the lean `lopf` reach `master`?
 
-`231fb970` is dated July 2023. The lesson's website is built from `main`. When did the recipes reach `main`, and through which pull request?
+`pypsa.linopf` started on a branch called `nomopyomo` ("no more Pyomo"). Its first commit, `cf787d7b`, is dated 15 October 2019. PyPSA releases come from `master`. When did it reach `master`, and through which pull request?
 
 <details>
 <summary>Solution</summary>
 
-Search only the commits on `main` itself, and look inside merge commits:
+Search only the commits on `master` itself, and look inside merge commits:
 
 ```bash
-git log --first-parent -m -S'guacamole' --format='%h %ad %s' --date=short -- episodes/04-changes.md
+git log --first-parent -m -S'nomopyomo' --format='%h %ad %s' --date=short -- pypsa
 ```
 
 ```text
-560e602e 2025-05-19 Merge pull request #1086 from ndporter/patch-1
-ecbc85e0 2024-09-29 Merge pull request #1003 from swcarpentry/recipes-draft
+21f8d20c 2024-05-15 Merge pull request #884 from PyPSA/remove-pyomo
+5b84f74b 2019-12-19 Merge pull request #99 from PyPSA/nomopyomo
 ```
 
-`--first-parent` follows only `main`'s own line of commits. `-m` lets `-S` look at the changes each merge brought in.
-The oldest hit is the answer: PR #1003, merged on 29 September 2024. The recipes sat on the `recipes-draft` branch for about 14 months.
-`git log --oneline --merges --grep=recipes` shows the extra work that took: `f0466725 Merge branch 'main' into recipes-draft` pulled `main` back into the branch to catch up.
+`--first-parent` follows only `master`'s own line of commits. `-m` lets `-S` look at the changes each merge brought in.
+The oldest hit is the answer: PR #99, merged on 19 December 2019, about two months after the first commit. The newer hit is the end of the story: PR #884 removed the Pyomo code and `n.lopf()` in May 2024.
+`git log --oneline --merges --grep="'master' into nomopyomo"` shows the extra work it took: three merges pulled `master` back into the branch to catch up.
 
 </details>
 
-### Optional finale: is anything left of the planets?
+### Optional finale: is anything left of `capex_fixed`?
 
 ```bash
-git grep -n -i planets
-git log -S'planets' --oneline -1
+git grep -n capex_fixed
+git log -S'capex_fixed' --oneline -1
 ```
 
 ```text
-15d56848 fixing the names for the changes in more recent commits
+355f4efb rename capex_fixed to installed_capex
 ```
 
-Say: `git grep` searches today's files and finds nothing. `git log -S` searches history. The newest commit that removed `planets` is `15d56848`, the two-file commit from 9.4. Together, the two commands tell you when something disappeared.
+Say: `git grep` searches today's files and finds nothing. `git log -S` searches history. The newest commit that removed `capex_fixed` is `355f4efb`, the two-file commit from 9.4. Together, the two commands tell you when something disappeared. Drop the `-1` to see it was added one day earlier, in `76371326`.
 
 ### Tips
 
-- The lesson keeps changing. If outputs differ from this script, run `git switch --detach d361fe95` to match it. Go back with `git switch main`.
-- `git blame` prints 9-character hashes such as `231fb970c`, one more than `git log`. Both name the same commit.
-- `git log -p -S'guacamole'` shows the matching diffs too.
-- Some terminals show the 🥑 in the commit message as a box. That is a font issue, not a git one.
+- PyPSA keeps changing. If outputs differ from this script, run `git switch --detach 96253dbf` to match it. Go back with `git switch master`.
+- Do not clone with `--filter=blob:none`. The clone is smaller (15 MB), but `git log -S` then downloads old files one at a time and takes minutes.
+- `git blame` prints 9-character hashes such as `5f2e4d3f7`, one more than `git log`. Both name the same commit.
+- `git log -p -S'def optimize('` shows the matching diffs too.
+- `-S` takes a plain string, not a pattern, so the `(` in `'def optimize('` needs no escaping.
 
 ---
 
@@ -484,19 +499,20 @@ Ask learners to put the steps in order before you show the table.
 
 1. Ask each learner for one thing that worked and one thing to improve.
 2. Point to the full lesson for self-study: https://swcarpentry.github.io/git-novice/
-3. Homework: in your `git-novice` clone, find when episode 5 switched from `git checkout` to `git restore`, and who made the change.
+3. Homework: in your PyPSA clone, find when the `Link` component arrived, and who added it.
 
 <details>
 <summary>Homework solution</summary>
 
 ```bash
-git log -S'git restore' --format='%h %ad %an %s' --date=short -- episodes/05-history.md
+git log -S'class Link' --format='%h %ad %an %s' --date=short -- pypsa/components.py
 ```
-
-The oldest line is the answer:
 
 ```text
-c4cb6383 2023-06-05 Koen Leuveld change the use of git checkout to git restore
+1e104c95 2017-01-05 Tom Brown all: abolish component classes and all _types sets
+6a076104 2016-07-03 Tom Brown Allow generic sector coupling with lossy link
 ```
+
+The oldest line is the answer: Tom Brown, July 2016. `git show -s 6a076104` prints the full message: "Link is a directed controllable branch with efficiency, which can be used to connect generic buses." The newer line removed the class again when PyPSA dropped per-component classes. `Link` itself stayed.
 
 </details>
