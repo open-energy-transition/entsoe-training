@@ -1,9 +1,9 @@
 # Git refresher for energy modellers: instructor script
 
 - **Instructor:** Will Usher
-- **Length:** 150 minutes, including a 10-minute break
-- **Audience:** junior data analysts and energy modellers
-- **Running example:** learners build the lesson's own `recipes` repo (`guacamole.md`, `groceries.md`, `hummus.md`), then explore the real history of [PyPSA](https://github.com/PyPSA/PyPSA), an open-source energy system modelling tool
+- **Length:** 40 minutes
+- **Audience:** data analysts and energy modellers
+- **Running example:** learners create branches, submit PRs and explore the real history of [PyPSA](https://github.com/PyPSA/PyPSA), an open-source energy system modelling tool
 
 > **Attribution**
 >
