@@ -1,4 +1,4 @@
-# Notebooks
+# Session 1: Python Recap
 
 ## [01-workshop-python-solution.ipynb](./01-workshop-python-solution.ipynb)
 
