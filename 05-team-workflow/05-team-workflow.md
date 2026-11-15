@@ -1,9 +1,9 @@
 # Git: using version control individually or in small teams
 
 - **Instructor:** Will Usher
-- **Length:** 150 minutes, including a 10-minute break
-- **Audience:** junior data analysts and energy modellers
-- **Running example:** learners build the lesson's own `recipes` repo (`guacamole.md`, `groceries.md`, `hummus.md`), then explore the real history of the `git-novice` lesson
+- **Length:** 50 minutes
+- **Audience:** data analysts and energy modellers
+- **Running example:** learners build their own `recipes` repo (`guacamole.md`, `groceries.md`, `hummus.md`), collaborate on a single repo, and explore conflict resolution
 
 > **Attribution**
 >
