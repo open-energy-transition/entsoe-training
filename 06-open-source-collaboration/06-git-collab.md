@@ -22,9 +22,26 @@
 
 ## Contents
 
+- [Instructor prep](#instructor-prep)
 - [Block 8. Branches and pull requests](#block-8-branches-and-pull-requests-20-min)
+- [Block 9. Exploring a real repository](#block-9-explore-a-real-project-15-min)
 - [Block 10. Wrap-up](#block-10-wrap-up-5-min)
 
+## Schedule
+
+| # | Block | Ep | Min | Starts at |
+|---|---|---|---|---|
+| 8 | Branches and Pull Requests| 8 | 20 | 0:00 |
+| 9 | Exploring a Real Repository | 9 | 15 | 0:20 |
+| 10 | Wrap-up | 10 | 5 | 0:35 |
+
+## Instructor prep
+
+1. Test the network and the projector. Make the terminal font big.
+2. Use a short prompt: `export PS1='$ '`.
+3. Make a second folder for solo demos of blocks 6 and 7: you will clone your own repo as `~/Desktop/recipes-at-work`.
+4. Clone the lesson repo in a second terminal: `git clone https://github.com/swcarpentry/git-novice.git`. You show its `.gitignore` in block 4, and everyone clones it in block 9.
+5. Paste each snippet into the chat as you reach it, for anyone who falls behind.
 
 ## Block 8. Branches and pull requests (20 min)
 
@@ -219,10 +236,7 @@ hint: If you are sure you want to delete it, run 'git branch -D try-garlic'
 
 ---
 
-## Block 9. Explore a real project: git-novice (15 min)
-
-No original episode. This block is new. It explores the history of the lesson this course is built on.
-All hashes and outputs below are real, taken at `main` = `d361fe95`.
+## Block 9. Explore a real project: PyPSA(15 min)
 
 ### Say
 
@@ -234,8 +248,8 @@ All hashes and outputs below are real, taken at `main` = `d361fe95`.
 
 ```bash
 cd ~/Desktop
-git clone https://github.com/swcarpentry/git-novice.git
-cd git-novice
+git clone https://github.com/PyPSA/PyPSA.git
+cd PyPSA
 git log --oneline | wc -l
 git log --oneline -5
 ```

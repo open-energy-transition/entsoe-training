@@ -22,9 +22,28 @@
 
 ## Contents
 
+- [Instructor prep](#instructor-prep)
 - [Block 5. Remotes in GitHub](#block-5-remotes-in-github-20-min)
 - [Block 6. Collaborating](#block-6-collaborating-15-min)
 - [Block 7. Conflicts](#block-7-conflicts-15-min)
+
+## Schedule
+
+| # | Block | Ep | Min | Starts at |
+|---|---|---|---|---|
+| 5 | Remotes in GitHub | 5 | 20 | 0:00 |
+| 6 | Collaborating | 6 | 15 | 0:20 |
+| 7 | Conflicts | 7 | 15 | 0:35 |
+
+Sub-step minutes inside a block can add up to less than the block total. Use the spare minutes for that block's challenge.
+
+## Instructor prep
+
+1. Test the network and the projector. Make the terminal font big.
+2. Use a short prompt: `export PS1='$ '`.
+3. Make a second folder for solo demos of blocks 6 and 7: you will clone your own repo as `~/Desktop/recipes-at-work`.
+4. Clone the lesson repo in a second terminal: `git clone https://github.com/swcarpentry/git-novice.git`. You show its `.gitignore` in block 4, and everyone clones it in block 9.
+5. Paste each snippet into the chat as you reach it, for anyone who falls behind.
 
 ## Block 5. Remotes in GitHub (20 min)
 
