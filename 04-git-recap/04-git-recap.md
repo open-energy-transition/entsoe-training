@@ -1,7 +1,7 @@
 # Git refresher for energy modellers
 
 - **Instructor:** Will Usher
-- **Length:** 60 minutes
+- **Length:** 50 minutes
 - **Audience:** data analysts and energy modellers
 
 > **Attribution**
