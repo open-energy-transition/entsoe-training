@@ -1,4 +1,4 @@
-# Git refresher for energy modellers: instructor script
+# Git: using version control individually or in small teams
 
 - **Instructor:** Will Usher
 - **Length:** 150 minutes, including a 10-minute break

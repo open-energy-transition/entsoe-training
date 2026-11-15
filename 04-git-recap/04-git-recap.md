@@ -14,7 +14,6 @@
 
 ## Contents
 
-- [Pre-course email](#pre-course-email)
 - [Instructor prep](#instructor-prep)
 - [Block 1. Why version control, setup check, create a repo](#block-1-why-version-control-setup-check-create-a-repo-10-min)
 - [Block 2. Tracking changes](#block-2-tracking-changes-15-min)
@@ -697,4 +696,3 @@ pictures/*
 
 - To stop tracking a file you committed by mistake: `git rm --cached file`, add it to `.gitignore`, and commit.
 - Rule order matters. A later `!pattern` overrides an earlier ignore pattern.
-
