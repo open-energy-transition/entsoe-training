@@ -82,17 +82,17 @@ JupyterLab opens in your browser. Open `hands-on-pypsa-components.ipynb` in the 
 
 Colab runs the notebook on Google servers, in the browser, without local installation. A Google account is required.
 
-1. Open the [notebook in Colab](https://colab.research.google.com/github/open-energy-transition/entsoe-training/blob/main/notebooks/hands-on-with-pypsa/hands-on-pypsa-components.ipynb).
+1. Open the [notebook in Colab](https://colab.research.google.com/github/open-energy-transition/entsoe-training/blob/main/02-hands-on-pypsa/hands-on-pypsa-components.ipynb).
 2. Insert a code cell at the top and run it. It downloads this repository, with `data/`, installs the packages and moves into the notebook folder:
 
    ```python
    !git clone https://github.com/open-energy-transition/entsoe-training.git
    %cd entsoe-training
    !pip install -r requirements.txt
-   %cd notebooks/hands-on-with-pypsa
+   %cd 02-hands-on-pypsa
    ```
 
-3. If Colab asks to restart the session, restart it, then run `%cd entsoe-training/notebooks/hands-on-with-pypsa` again.
+3. If Colab asks to restart the session, restart it, then run `%cd entsoe-training/02-hands-on-pypsa` again.
 
 ## Troubleshooting
 
