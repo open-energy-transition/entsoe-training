@@ -117,7 +117,7 @@ md(
     f"""
 ## Setup
 
-Run this notebook with one of these options. The [README]({REPO}/tree/main/notebooks/hands-on-with-pypsa#readme) of the training repository describes each of them.
+Run this notebook with one of these options. The [README]({REPO}/tree/main/02-hands-on-pypsa#readme) of the training repository describes each of them.
 
 1. **VS Code**, with the local environment of the README.
 2. **JupyterLab**, with the same local environment.
@@ -1087,7 +1087,7 @@ Each flat level of the curve is the marginal cost of the technology that sets th
 md(
     "task4",
     f"""
-## Task 4 · A higher renewable share (advanced, if time allows)
+## Task 4 · A higher renewable share (advanced)
 
 **10 min**
 
@@ -1202,7 +1202,7 @@ md(
     "**Interpretation** (6 h averages). Cutting the emissions by 30 %, from 133 to 93 Mt, gives a CO₂ price of 86 €/t (`mu` is −86): the marginal abatement cost. The system cost rises by 3.4 %, from 63.9 to 66.1 bn€/a. Onshore wind grows from 73 to 130 GW and replaces much of the OCGT output (84 → 76 GW). More electrolysis (24 → 34 GW), hydrogen storage (0.35 → 2.1 TWh) and a battery (11 GW) absorb the wind peaks. The TYNDP 2026 National Trends+ CO₂ price for 2035, 197.5 €/t, is a scenario input for the whole EU ETS. Ours is a result: the cost of a 30 % cut in a stylised model of Germany.",
 )
 
-md("sol4-md", "## Task 4 · A higher renewable share (advanced, if time allows)")
+md("sol4-md", "## Task 4 · A higher renewable share (advanced)")
 
 code(
     "sol4",
