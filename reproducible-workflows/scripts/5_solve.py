@@ -1,9 +1,17 @@
+import logging
+
 import pypsa
+
+logging.basicConfig(level=logging.WARNING)
+pypsa.options.params.optimize.log_to_console = False
+pypsa.options.api.legacy_string_dtype = False
+pypsa.options.params.optimize.include_objective_constant = False
+
 
 def main(network: pypsa.Network) -> pypsa.Network:
     """Solve the network"""
 
-    network.optimize(solver_name="highs")
+    network.optimize(io_api="direct")
     return network
 
 

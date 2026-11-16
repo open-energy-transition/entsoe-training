@@ -1,11 +1,11 @@
 """Model Initialisation
 
-We build a capacity expansion model for Germany, Austria and Switzerland in 2035,
-with one node per country, connected by AC lines. Germany also has a hydrogen demand,
-served by electrolysis, a fuel cell and hydrogen storage.
+We build a capacity expansion model for Germany in 2035, with one electricity bus.
+Germany also has a hydrogen demand, served by electrolysis, a fuel cell and hydrogen storage.
 
 The wind and solar capacities are capped at the TYNDP 2026 National Trends+ 2035 fleet,
-and a CO2 limit caps the emissions.
+and a CO2 limit caps the emissions. This is the model of Step 3 and Task 3 of the
+"Hands on with PyPSA components" notebook.
 
 """
 
@@ -13,8 +13,7 @@ import os
 import pypsa
 import pandas as pd
 
-# %%
-pypsa.options.params.optimize.include_objective_constant = False
+pypsa.options.api.legacy_string_dtype = False
 
 # Must match the resolution in 3_get_timeseries.py
 RESOLUTION = 6
@@ -24,7 +23,7 @@ def main(
     costs: pd.DataFrame,
     ts: pd.DataFrame,
     p_nom_max: pd.Series,
-    CO2_constraint: float = 120e6,
+    CO2_constraint: float = 93e6,  # t/a, 70 % of 132.9 Mt/a, for illustration
 ) -> pypsa.Network:
     """For building the model, we start again by initialising an empty network.
 
@@ -37,7 +36,8 @@ def main(
     p_nom_max: pd.Series
         Maximum wind and solar capacity per generator, in MW
     CO2_constraint: float
-        CO2 limit, in t/a
+        CO2 limit, in t/a. The default is 70 % of the emissions without limit
+        (132.9 Mt/a), as an illustration, as in Task 3 of the notebook.
 
     Returns
     -------
@@ -47,6 +47,7 @@ def main(
     """
 
     n = pypsa.Network()
+    n.add("Bus", "DE", carrier="AC")
 
     # The snapshots of the model are the time series index, each representing RESOLUTION hours.
 
@@ -79,54 +80,52 @@ def main(
         ],
     )
 
-    # Each country gets an electricity bus, a demand and an OCGT.
+    # The electricity bus gets a demand and an OCGT.
 
-    for country in ["DE", "AT", "CH"]:
-        n.add("Bus", country, carrier="AC", v_nom=380)
-        n.add("Load", f"{country} load", bus=country, p_set=ts[f"{country} load"])
-        n.add(
-            "Generator",
-            f"{country} OCGT",
-            bus=country,
-            carrier="OCGT",
-            capital_cost=costs.at["OCGT", "capital_cost"],
-            marginal_cost=costs.at["OCGT", "marginal_cost"],
-            efficiency=costs.at["OCGT", "efficiency"],
-            p_nom_extendable=True,
-        )
+    n.add("Load", "DE load", bus="DE", p_set=ts["DE load"])
+    n.add(
+        "Generator",
+        "DE OCGT",
+        bus="DE",
+        carrier="OCGT",
+        capital_cost=costs.at["OCGT", "capital_cost"],
+        marginal_cost=costs.at["OCGT", "marginal_cost"],
+        efficiency=costs.at["OCGT", "efficiency"],
+        p_nom_extendable=True,
+    )
 
     # Adding the variable renewable generators works almost identically, but we also need to
     # supply the capacity factors via `p_max_pu` and the capacity limits via `p_nom_max`.
 
-    for gen in p_nom_max.index:
-        country, tech = gen.split()
+    for tech in ["onwind", "offwind", "solar"]:
         n.add(
             "Generator",
-            gen,
-            bus=country,
+            f"DE {tech}",
+            bus="DE",
             carrier=tech,
-            p_max_pu=ts[gen],
+            p_max_pu=ts[f"DE {tech}"],
             capital_cost=costs.at[tech, "capital_cost"],
             marginal_cost=costs.at[tech, "marginal_cost"],
             p_nom_extendable=True,
-            p_nom_max=p_nom_max[gen],
+            p_nom_max=p_nom_max[f"DE {tech}"],
         )
 
+    max_hours = 4
     n.add(
         "StorageUnit",
         "DE battery storage",
         bus="DE",
         carrier="battery storage",
-        max_hours=4,
+        max_hours=max_hours,
         capital_cost=costs.at["battery inverter", "capital_cost"]
-        + 4 * costs.at["battery storage", "capital_cost"],
+        + max_hours * costs.at["battery storage", "capital_cost"],
         efficiency_store=costs.at["battery inverter", "efficiency"],
         efficiency_dispatch=costs.at["battery inverter", "efficiency"],
         p_nom_extendable=True,
         cyclic_state_of_charge=True,
     )
 
-    # Hydrogen in Germany: electrolysis (Process), fuel cell (Link), storage (Store), demand
+    # Hydrogen: electrolysis (Process), fuel cell (Link), storage (Store), demand
 
     n.add("Bus", "DE hydrogen", carrier="hydrogen")
     n.add(
@@ -167,20 +166,6 @@ def main(
         p_set=142.7e6 / 8760,  # 142.7 TWh/a
     )
 
-    # Greenfield AC grid: length in km between country centres
-
-    for bus0, bus1, length in [("DE", "AT", 500), ("DE", "CH", 510), ("AT", "CH", 480)]:
-        n.add(
-            "Line",
-            f"{bus0}-{bus1}",
-            bus0=bus0,
-            bus1=bus1,
-            type="Al/St 240/40 4-bundle 380.0",
-            length=length,
-            capital_cost=costs.at["HVAC overhead", "capital_cost"] * length,
-            s_nom_extendable=True,
-        )
-
     n.add(
         "GlobalConstraint",
         "CO2Limit",
@@ -205,5 +190,6 @@ if __name__ == "__main__":
 
     network = main(cost_data, timeseries_data, p_nom_max_data)
 
+    os.makedirs("results", exist_ok=True)
     network_path = os.path.join("results", "cem.nc")
     network.export_to_netcdf(network_path)

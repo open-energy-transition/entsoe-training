@@ -1,8 +1,8 @@
 """Loading time series data
 
 We need time series for wind, solar and load. They are hourly time series of
-TYNDP 2026 National Trends+ 2035 (weather scenario WS032) for Germany, Austria
-and Switzerland, already in MW, the base unit of PyPSA.
+TYNDP 2026 National Trends+ 2035 (weather scenario WS032) for Germany,
+already in MW, the base unit of PyPSA.
 
 
 """
