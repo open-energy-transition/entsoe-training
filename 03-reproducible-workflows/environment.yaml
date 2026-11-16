@@ -1,0 +1,13 @@
+name: 03-reproducible-workflows
+channels:
+- conda-forge
+- bioconda
+- nodefaults
+dependencies:
+- python >=3.12,<3.14
+- pypsa==1.4.0
+- linopy==0.10.1
+- highspy==1.15.1
+- pandas>=3, <4
+- matplotlib>=3, <4
+- snakemake-minimal>=9, <10

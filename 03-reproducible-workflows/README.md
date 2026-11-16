@@ -14,7 +14,9 @@ Stages 2 and 3 also need `bash` and `make`. macOS and Linux have both. On Window
 
 ## 1 · Set up
 
-Download this repository and create the environment `.venv`, as the [Setup](../README.md#setup) explains. The environment includes Snakemake.
+Download this repository and create the environment using the `03-reproducible-workflows/environment.yaml` file.
+
+As a fallback, create the environment using `.venv`, as the [Setup](../README.md#setup) explains. The environment includes Snakemake.
 
 ## 2 · Run the workflow
 
