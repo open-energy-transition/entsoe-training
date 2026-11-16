@@ -225,7 +225,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Notebook outputs
-02-hands-on-pypsa/*.nc
+*/*.nc
 
 # IDE
 .idea/
@@ -237,3 +237,10 @@ CLAUDE.md
 CLAUDE.local.md
 .envrc
 AGENTS.md
+
+# Local handoffs and plans
+dev/
+
+# Outputs of the reproducible-workflows session
+03-reproducible-workflows/data/
+03-reproducible-workflows/results/
