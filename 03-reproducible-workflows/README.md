@@ -23,9 +23,13 @@ Activate the environment and open a terminal in this folder (`03-reproducible-wo
 ```sh
 python 1-monolith/PyPSA-cem.py                # 1) Monolithic script
 bash 2-scripts/run.sh                         # 2) Modular scripts, one by one
+make -f 3-make/Makefile clean                 #    Delete the files of stage 2
 make -f 3-make/Makefile                       # 3) Workflow with Make
+make -f 3-make/Makefile clean                 #    Delete the files of stage 3
 snakemake -s 4-snakemake/Snakefile --cores 1  # 4) Workflow with Snakemake
 ```
+
+Stages 2 to 4 write the same files to `data/` and `results/`. Make and Snakemake skip a step when its output is up to date. Without `clean`, stages 3 and 4 find the files of the previous stage and print "Nothing to be done".
 
 ### Stage 1 · Monolithic script
 
@@ -87,6 +91,7 @@ See the [Troubleshooting](../README.md#troubleshooting) of the Setup. Specific t
 |---|---|---|
 | `'bash' is not recognized` (Windows) | Windows has no bash | Use **Git Bash**, which comes with [Git for Windows](https://git-scm.com/download/win), or run the six commands of `2-scripts/run.sh` one by one |
 | `'make' is not recognized` (Windows, Git Bash) | Windows and Git Bash have no Make | Install it with `winget install ezwinports.make`, or skip to stage 4: Snakemake runs on Windows |
+| `Nothing to be done` (Make or Snakemake) | The files in `data/` and `results/` are up to date | Run `make -f 3-make/Makefile clean`, or add `--forceall` to the Snakemake command |
 | `FileNotFoundError: ../02-hands-on-pypsa/data/...` | The terminal is not in `03-reproducible-workflows` | Change to this folder, then run the command again |
 
 ## Licence
