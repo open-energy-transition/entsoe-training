@@ -225,4 +225,15 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Notebook outputs
-notebooks/*/*.nc
+02-hands-on-pypsa/*.nc
+
+# IDE
+.idea/
+
+# ai coding tools
+CLAUDE.md
+.claude/
+.github/copilot-instructions.md
+CLAUDE.local.md
+.envrc
+AGENTS.md
