@@ -50,19 +50,24 @@ Check that `conda` works:
 conda --version
 ```
 
-Create the environment from the root folder of the training material:
+Create the environment from the relevant subfolder folder of the training material:
 
 ```sh
+conda env create -f 01-python-recap/environment.yaml
+## Alternatively
+cd 01-python-recap
 conda env create -f environment.yaml
 ```
 
-This creates an environment named `entsoe-training`. It can take a few
-minutes.
+This creates an environment named `entsoe-training` (if you use the `environment.yaml` file from the root folder). It can take a few
+minutes.  Otherwise the environment you create is called after the folder e.g. `01-python-recap`.
 
 ## 3. Activate the environment
 
 ```sh
 conda activate entsoe-training
+# Alternatively
+conda activate 01-python-recap
 ```
 
 Your prompt now starts with `(entsoe-training)`.
@@ -76,7 +81,7 @@ Your prompt now starts with `(entsoe-training)`.
 jupyter lab
 ```
 
-Jupyter Lab opens in your web browser. Open the `notebooks/` folder and start
+Jupyter Lab opens in your web browser. Open the `01-python-recap/` folder and start
 with `01-workshop-python.ipynb`.
 
 ## Fallback: Google Colab
