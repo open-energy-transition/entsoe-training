@@ -33,7 +33,6 @@ PAGES = {
     "Store": "components/stores/",
     "Link": "components/links/",
     "Process": "components/processes/",
-    "Line": "components/lines/",
     "GlobalConstraint": "components/global-constraints/",
 }
 
@@ -74,7 +73,6 @@ COMPONENTS = [
     "Store",
     "Link",
     "Process",
-    "Line",
 ]
 
 md(
@@ -94,14 +92,14 @@ md(
 md(
     "intro",
     f"""
-This notebook follows the course [Data Science for Energy System Modelling]({DSESM}/intro/) (F. Neumann, TU Berlin): the workshops [PyPSA: Capacity Expansion]({CEM}), [PyPSA: Sector-Coupling]({SC}) and [Linopy]({LP}). We reuse their steps, equations and code, together with the [PyPSA example notebooks](https://docs.pypsa.org/latest/examples/), and apply them to Germany, Austria and Switzerland with [TYNDP 2026]({TYNDP}) data. The section [Sources and licences](#sources-and-licences) lists every source.
+This notebook follows the course [Data Science for Energy System Modelling]({DSESM}/intro/) (F. Neumann, TU Berlin): the workshops [PyPSA: Capacity Expansion]({CEM}), [PyPSA: Sector-Coupling]({SC}) and [Linopy]({LP}). We reuse their steps, equations and code, together with the [PyPSA example notebooks](https://docs.pypsa.org/latest/examples/), and apply them to Germany with [TYNDP 2026]({TYNDP}) data. The section [Sources and licences](#sources-and-licences) lists every source.
 
 | Step | Topic | Task |
 |---|---|---|
 | 1 | Capacity expansion for Germany | Only wind or only solar |
 | 2 | Sector coupling with hydrogen | Expensive hydrogen storage |
-| 3 | Parameters as constraints, and the grid | A CO₂ limit and its price |
-| 4 | Under the hood: linopy | A higher renewable share |
+| 3 | Parameters as constraints | A CO₂ limit and its price |
+| 4 | Under the hood: linopy (advanced) | A higher renewable share |
 
 > **Note**
 >
@@ -109,7 +107,7 @@ This notebook follows the course [Data Science for Energy System Modelling]({DSE
 
 > **Warning**
 >
-> This is a stylised model for learning. Its numbers are not TYNDP results: one weather scenario of the TYNDP for 2035, greenfield, three countries, one node per country.
+> This is a stylised model for learning. Its numbers are not TYNDP results: one weather scenario of the TYNDP for 2035, greenfield, one node for Germany.
 """,
 )
 
@@ -250,30 +248,39 @@ md(
     f"""
 ## Loading time series data
 
-The file `data/tyndp2026-nt2035-hourly-demand-wind-solar.csv` holds hourly time series of [TYNDP 2026]({TYNDP}) National Trends+ 2035, WS032 (as in [Open-TYNDP]({OTYNDP})), for Germany, Austria and Switzerland. The script `scripts/extract_tyndp.py` in this repository extracts it from the TYNDP download. First, the market-node electricity demand, in MW, the base unit of PyPSA:
+The file `data/tyndp2026-nt2035-hourly-demand-wind-solar.csv` holds hourly time series of [TYNDP 2026]({TYNDP}) National Trends+ 2035, WS032 (as in [Open-TYNDP]({OTYNDP})), for Germany. The script `scripts/extract_tyndp.py` in this repository extracts it from the TYNDP download. First, the market-node electricity demand, in MW, the base unit of PyPSA:
 """,
 )
 
 code(
     "demand",
     """
-ts = pd.read_csv("data/tyndp2026-nt2035-hourly-demand-wind-solar.csv", index_col=0, parse_dates=True)
-ts.columns = ts.columns.str.split(expand=True)  # (country, carrier)
-demand = ts.xs("load", axis=1, level=1)
-demand.resample("D").mean().div(1e3).plot(title="Electricity demand, daily mean", ylabel="GW")
+ts = pd.read_csv(
+    "data/tyndp2026-nt2035-hourly-demand-wind-solar.csv",
+    index_col=0,
+    parse_dates=True,
+)
+ts.columns = ts.columns.str.removeprefix("DE ")
+demand = ts["load"]
+(
+    demand.resample("D")
+    .mean()
+    .div(1e3)
+    .plot(title="Electricity demand, daily mean", ylabel="GW")
+)
 """,
 )
 
 md(
     "cf-md",
-    "Then the capacity factors of the Pan-European Climate Database (PECD) for onshore wind, offshore wind (Germany only) and utility-scale solar:",
+    "Then the capacity factors of the Pan-European Climate Database (PECD) for onshore wind, offshore wind and utility-scale solar:",
 )
 
 code(
     "cf",
     """
-cf = {country: ts[country].drop(columns="load") for country in demand.columns}
-cf["DE"].head(3)
+cf = ts.drop(columns="load")
+cf.mean()  # p.u.
 """,
 )
 
@@ -282,11 +289,7 @@ md("cf-plot-md", "The weekly means show the seasons: more wind in winter, more s
 code(
     "cf-plot",
     """
-cf_weekly = pd.concat(cf, axis=1).resample("W").mean()
-fig, axes = plt.subplots(1, 3, sharey=True)
-fig.suptitle("Capacity factors, weekly mean")
-for ax, tech in zip(axes, ["onwind", "offwind", "solar"]):
-    cf_weekly.xs(tech, axis=1, level=1).plot(ax=ax, title=tech, ylabel="p.u.")
+cf.resample("W").mean().plot(title="Capacity factors, weekly mean", ylabel="p.u.")
 """,
 )
 
@@ -300,7 +303,7 @@ code(
     f"""
 resolution = {RESOLUTION}
 demand = demand.resample(f"{{resolution}}h").mean()
-cf = {{country: df.resample(f"{{resolution}}h").mean() for country, df in cf.items()}}
+cf = cf.resample(f"{{resolution}}h").mean()
 """,
 )
 
@@ -310,7 +313,7 @@ md(
     f"""
 # Step 1 · Capacity expansion for Germany
 
-We start with one node for Germany: wind, solar, gas turbines and batteries. The capacities are **decision variables**, with costs in the objective. This is the **capacity expansion problem**:
+We start with one node for Germany: wind, solar, gas turbines and batteries. The capacities and dispatches are **decision variables**, with costs in the objective. This is the **capacity expansion problem**:
 
 \\begin{{equation*}}
     \\min_{{g,G}} \\quad \\underbrace{{\\sum_{{s,t}} w_t o_s g_{{s,t}}}}_{{\\text{{operation}}}} + \\underbrace{{\\sum_s c_s G_s + \\sum_r c_r G_r}}_{{\\text{{investment}}}}
@@ -360,7 +363,6 @@ md(
 |---|---|---|
 | `p` | active power, in MW | `p`: dispatch of a generator in each snapshot |
 | `e` | energy, in MWh | `e`: filling level of a store |
-| `s` | apparent power of a line, in MVA | `s_nom`: line capacity |
 | `_nom` | nominal value: the capacity | `p_nom`: generator capacity |
 | `_extendable` | the optimisation chooses the capacity | `p_nom_extendable=True` |
 | `_min`, `_max` | lower and upper limit | `p_nom_max`: capacity limit |
@@ -378,16 +380,19 @@ code(
     """
 attrs = ["p_nom", "p_nom_extendable", "p_nom_max", "p_max_pu", "marginal_cost", "capital_cost"]
 with pd.option_context("display.max_colwidth", None):
-    display(n.components.generators.defaults.loc[attrs, ["unit", "default", "description"]])
+    display(
+        n.components.generators.defaults
+        .loc[attrs, ["unit", "default", "description"]]
+    )
 """,
 )
 
 md(
     "bus-md",
-    "Then, we add a single bus for Germany. `AC` is PyPSA's carrier name for the electricity grid. The nominal voltage `v_nom` (kV) matters only for the lines of Step 3.",
+    "Then, we add a single bus for Germany. `AC` is PyPSA's carrier name for the electricity grid.",
 )
 
-code("bus", 'n.add("Bus", "DE", carrier="AC", v_nom=380)')
+code("bus", 'n.add("Bus", "DE", carrier="AC")')
 
 md(
     "snapshots-md",
@@ -426,7 +431,7 @@ md("load-md", "Next, we add the demand time series $d_t$ to the model.")
 code(
     "load",
     """
-n.add("Load", "DE load", bus="DE", p_set=demand["DE"])
+n.add("Load", "DE load", bus="DE", p_set=demand)
 n.loads_t.p_set.div(1e3).plot(title="Electricity demand, Germany", ylabel="GW")
 """,
 )
@@ -466,7 +471,7 @@ for tech in ["onwind", "offwind", "solar"]:
         f"DE {tech}",
         bus="DE",
         carrier=tech,
-        p_max_pu=cf["DE"][tech],
+        p_max_pu=cf[tech],
         capital_cost=costs.at[tech, "capital_cost"],
         marginal_cost=costs.at[tech, "marginal_cost"],
         p_nom_extendable=True,
@@ -515,7 +520,7 @@ code("opt1", 'n.optimize(io_api="direct")')
 
 md("objective1-md", "The total system cost in billion euros per year:")
 
-code("objective1", "n.objective / 1e9")
+code("objective1", "n.objective / 1e9  # bn€/a")
 
 md("capacity1-md", "The optimised capacities in GW:")
 
@@ -530,14 +535,28 @@ code("balance1", "n.statistics.energy_balance().sort_values().div(1e6)  # TWh")
 
 md(
     "nothing-md",
-    "**No onshore wind.** Offshore wind costs 52 €/MWh at its mean capacity factor of 49 %, onshore wind 57 €/MWh at 26 %. The model builds only offshore wind. **Little battery.** The model builds 17 GW of battery, but OCGT remains the main source of flexibility. Without a CO₂ price, OCGT supplies 190 TWh, 31 % of the demand: Task 3 limits the emissions. The 6 h averages smooth out most of the day-night cycle that batteries exploit, so the model undervalues them. The dispatch of 1–14 February zooms on a windy start followed by a lull with little wind and sun. It shows how OCGT fills the gaps of wind and solar:",
+    "**No onshore wind.** Offshore wind costs 52 €/MWh at its mean capacity factor of 49 %, onshore wind 57 €/MWh at 26 %. Nothing limits the offshore capacity yet, so the model builds only offshore wind: 75 GW, against 50 GW planned in TYNDP 2026 for 2035. Step 3 adds this limit. **Little battery.** The model builds 17 GW of battery, but OCGT remains the main source of flexibility. Without a CO₂ price, OCGT supplies 190 TWh, 31 % of the demand: Task 3 limits the emissions. The 6 h averages smooth out most of the day-night cycle that batteries exploit, so the model undervalues them. The dispatch of 1–14 February zooms on a windy start followed by a lull with little wind and sun. It shows how OCGT fills the gaps of wind and solar:",
 )
 
 code(
     "dispatch1",
     """
-colors = n.generators.carrier.map(n.carriers.color).to_dict()
-n.generators_t.p.loc["2035-02-01":"2035-02-14"].div(1e3).plot.area(color=colors, linewidth=0, title="Dispatch, Germany, 1–14 February", ylabel="GW")
+supply = n.statistics.supply(
+    components=["Generator", "StorageUnit"],
+    groupby_time=False,
+    aggregate_across_components=True,
+)
+(
+    supply.T
+    .loc["2035-02-01":"2035-02-14"]
+    .div(1e3)
+    .plot.area(
+        color=n.carriers.color.to_dict(),
+        linewidth=0,
+        title="Supply, Germany, 1–14 February",
+        ylabel="GW",
+    )
+)
 """,
 )
 
@@ -682,7 +701,13 @@ code(
     "h2load",
     """
 p_set = 142.7e6 / 8760  # MW, 142.7 TWh/a
-n.add("Load", "DE hydrogen demand", bus="DE hydrogen", carrier="hydrogen", p_set=p_set)  # MW
+n.add(
+    "Load",
+    "DE hydrogen demand",
+    bus="DE hydrogen",
+    carrier="hydrogen",
+    p_set=p_set,
+)
 """,
 )
 
@@ -705,7 +730,7 @@ code("opt2", 'n.optimize(io_api="direct")')
 
 md("objective2-md", "The total system cost in billion euros per year:")
 
-code("objective2", "n.objective / 1e9")
+code("objective2", "n.objective / 1e9  # bn€/a")
 
 md(
     "capacity2-md",
@@ -716,17 +741,35 @@ code("capacity2", "n.statistics.optimal_capacity().div(1e3)  # GW, GWh")
 
 md(
     "balance2-md",
-    "The electricity balance in TWh. The electrolysis uses 204 TWh, against an electricity load of 622 TWh. OCGT output grows by 64 TWh from Step 1, about 31 % of the electrolysis use. OCGT sets the electricity price at 82.4 €/MWh most of the time. One more MWh of hydrogen then needs 1/0.7 MWh of electricity from OCGT, so the hydrogen price is mostly 82.4/0.7 ≈ 118 €/MWh. Gas power sets the price of hydrogen, although wind and solar produce most of it.",
+    "The electricity balance in TWh. The electrolysis uses 204 TWh, against an electricity load of 622 TWh. OCGT output grows by 64 TWh from Step 1, about 31 % of the electrolysis use.",
 )
 
-code("balance2", 'n.statistics.energy_balance(bus_carrier="AC").sort_values().div(1e6)  # TWh')
+code(
+    "balance2",
+    """
+(
+    n.statistics.energy_balance(bus_carrier="AC")
+    .sort_values()
+    .div(1e6)
+)  # TWh
+""",
+)
 
 md(
     "soc2-md",
     "The filling level of the hydrogen storage shows how it shifts energy in time. It holds at most 0.55 TWh, 1.4 days of hydrogen demand, and empties every month. Do not expect a seasonal storage from this model. OCGT, with unlimited gas and no CO₂ price, covers most shortages at 82.4 €/MWh, so storing hydrogen for months does not pay. The model also has one country, no imports and a constant hydrogen demand:",
 )
 
-code("soc2", 'n.stores_t.e.div(1e6).plot(title="Hydrogen storage filling level", ylabel="TWh")')
+code(
+    "soc2",
+    """
+(
+    n.stores_t.e
+    .div(1e6)
+    .plot(title="Hydrogen storage filling level", ylabel="TWh")
+)
+""",
+)
 
 code("save2", 'n.export_to_netcdf("network-step2.nc");')
 
@@ -753,29 +796,7 @@ code("task2-code", "# Your code here")
 md(
     "s3",
     f"""
-# Step 3 · Parameters as constraints, and the grid
-
-We add Austria and Switzerland as buses $i$, connected by lines $\\ell$. Each line has a flow $f_{{\\ell,t}}$, a capacity $F_\\ell$ and a reactance $x_\\ell$. The energy balance of each bus now includes the flows, with the incidence matrix $K_{{i\\ell}}$:
-
-\\begin{{equation*}}
-    \\min \\quad \\underbrace{{\\ldots}}_{{\\text{{Steps 1, 2}}}} + \\underbrace{{\\sum_\\ell c_\\ell F_\\ell}}_{{\\text{{investment}}}}
-\\end{{equation*}}
-such that
-\\begin{{align*}}
-    d_{{i,t}} &= \\ldots - \\sum_\\ell K_{{i\\ell}} f_{{\\ell,t}} & \\text{{energy balance}} \\\\
-    -F_\\ell &\\leq f_{{\\ell,t}} \\leq F_\\ell & \\text{{line limits}} \\\\
-    0 &= \\sum_\\ell C_{{\\ell c}} x_\\ell f_{{\\ell,t}} & \\text{{KVL}} \\\\
-    G_{{i,s}} &\\leq \\overline{{G}}_{{i,s}} & \\text{{generator capacity expansion limits}}
-\\end{{align*}}
-
-| Symbol | Meaning | Component | Attribute |
-|---|---|---|---|
-| $f_{{\\ell,t}}$, $F_\\ell$ | flow and capacity of line $\\ell$ | {doc("Line")} | `p0`, `s_nom` |
-| $x_\\ell$ | reactance | {doc("Line")} | `x`, from `type` and `length` |
-| $c_\\ell$ | annualised capital cost | {doc("Line")} | `capital_cost` |
-| $K_{{i\\ell}}$ | $+1$ if line $\\ell$ starts at bus $i$, $-1$ if it ends there | {doc("Line")} | `bus0`, `bus1` |
-| $C_{{\\ell c}}$ | $\\pm 1$ if line $\\ell$ is in loop $c$ | {doc("Network")} | computed by PyPSA |
-| $G_{{i,s}}$, $\\overline{{G}}_{{i,s}}$ | capacity of generator $s$ at bus $i$ and its maximum | {doc("Generator")} | `p_nom`, `p_nom_max` |
+# Step 3 · Parameters as constraints
 
 In PyPSA, you rarely write a constraint yourself. You set a component parameter, and PyPSA writes the constraint:
 
@@ -784,133 +805,76 @@ In PyPSA, you rarely write a constraint yourself. You set a component parameter,
 | Weather-dependent output | `p_max_pu` (Step 1) | generator limits |
 | Storage ends where it starts | `cyclic_state_of_charge`, `e_cyclic` (Steps 1, 2) | storage consistency |
 | At most the planned wind and solar fleet | `p_nom_max` | generator capacity expansion limits |
-| Meshed AC grid | `Line` with `type`, `length`, `s_nom_extendable` | line limits and KVL |
 | Emission limit | `Carrier.co2_emissions` (Step 1) and a `GlobalConstraint` | CO₂ limit (Task 3) |
 
-KVL is Kirchhoff's voltage law: in each closed loop $c$ of lines (matrix $C_{{\\ell c}}$), the flows split by reactance. Germany, Austria and Switzerland form one loop.
+The new constraint of this step limits the capacity $G_s$ of each generator $s$ to its maximum $\\overline{{G}}_s$:
 
-*Source: [PyPSA: Capacity Expansion]({CEM}); PyPSA user guide, [power flow]({UG}/optimization/power-flow/) and [capacity limits]({UG}/optimization/capacity-limits/), CC-BY-4.0.*
-""",
-)
+\\begin{{equation*}}
+    G_s \\leq \\overline{{G}}_s \\qquad \\text{{generator capacity expansion limits}}
+\\end{{equation*}}
 
-md(
-    "neighbours-md",
-    "We add Austria and Switzerland with electricity only: a bus, a load and an OCGT each...",
-)
+| Symbol | Meaning | Component | Attribute |
+|---|---|---|---|
+| $G_s$, $\\overline{{G}}_s$ | capacity of generator $s$ and its maximum | {doc("Generator")} | `p_nom`, `p_nom_max` |
 
-code(
-    "neighbours",
-    """
-for country in ["AT", "CH"]:
-    n.add("Bus", country, carrier="AC", v_nom=380)
-    n.add("Load", f"{country} load", bus=country, p_set=demand[country])
-    n.add(
-        "Generator",
-        f"{country} OCGT",
-        bus=country,
-        carrier="OCGT",
-        capital_cost=costs.at["OCGT", "capital_cost"],
-        marginal_cost=costs.at["OCGT", "marginal_cost"],
-        efficiency=costs.at["OCGT", "efficiency"],
-        p_nom_extendable=True,
-    )
-""",
-)
-
-md("neighbours-res-md", "...and wind and solar with their own capacity factors.")
-
-code(
-    "neighbours-res",
-    """
-for country in ["AT", "CH"]:
-    for tech in ["onwind", "solar"]:
-        n.add(
-            "Generator",
-            f"{country} {tech}",
-            bus=country,
-            carrier=tech,
-            p_max_pu=cf[country][tech],
-            capital_cost=costs.at[tech, "capital_cost"],
-            marginal_cost=costs.at[tech, "marginal_cost"],
-            p_nom_extendable=True,
-        )
+*Source: [PyPSA: Capacity Expansion]({CEM}); PyPSA user guide, [capacity limits]({UG}/optimization/capacity-limits/), CC-BY-4.0.*
 """,
 )
 
 md(
     "pnommax-md",
     f"""
-`p_nom_max` sets the maximum capacity $\\overline{{G}}_{{i,s}}$: the market-node wind and solar capacities of [TYNDP 2026]({TYNDP}) National Trends+ 2035, without rooftop solar, from the ENTSO-E Pan-European Market Modelling Database (PEMMDB). The model can build the planned fleet, but not more. The file `data/tyndp2026-nt2035-wind-solar-capacity.csv` holds the extract:
+`p_nom_max` sets the maximum capacity $\\overline{{G}}_s$: the market-node wind and solar capacities of [TYNDP 2026]({TYNDP}) National Trends+ 2035, without rooftop solar, from the ENTSO-E Pan-European Market Modelling Database (PEMMDB). The model can build the planned fleet, but not more. The file `data/tyndp2026-nt2035-wind-solar-capacity.csv` holds the extract:
 """,
 )
 
 code(
     "pnommax",
     """
-p_nom_max = pd.read_csv("data/tyndp2026-nt2035-wind-solar-capacity.csv", index_col=0)["p_nom_max"]  # MW
+p_nom_max = (
+    pd.read_csv("data/tyndp2026-nt2035-wind-solar-capacity.csv", index_col=0)
+    .p_nom_max
+)  # MW
 n.generators.loc[p_nom_max.index, "p_nom_max"] = p_nom_max
 p_nom_max
 """,
 )
 
-md(
-    "lines-md",
-    f"""
-We connect the three countries with three AC lines. The standard [line type]({UG}/components/line-types/) and the `length` give the reactance $x_\\ell$. The lengths are the distances between the country centres, rounded. The capital cost is the technology-data cost of an overhead line per MW and km. The model has no existing cross-border capacity: the grid is greenfield, so the model builds all of it.
-""",
-)
-
-code(
-    "lines",
-    """
-for bus0, bus1, length in [("DE", "AT", 500), ("DE", "CH", 510), ("AT", "CH", 480)]:
-    n.add(
-        "Line",
-        f"{bus0}-{bus1}",
-        bus0=bus0,
-        bus1=bus1,
-        type="Al/St 240/40 4-bundle 380.0",
-        length=length,  # km
-        s_nom_extendable=True,
-        capital_cost=costs.at["HVAC overhead", "capital_cost"] * length,
-    )
-""",
-)
-
 code("opt3", 'n.optimize(io_api="direct")')
 
-code("objective3", "n.objective / 1e9")
+code("objective3", "n.objective / 1e9  # bn€/a")
 
 md(
     "capacity3-md",
-    """
-The generation capacities per country, in MW. `n.statistics` can plot each of its tables directly, with the carrier colours. Germany reaches its limits for offshore wind and solar, and builds onshore wind below its limit. Austria and Switzerland build all the solar they may, and Austria all its onshore wind; OCGT covers the rest. The model leaves out their large hydro fleets.
-""",
+    "The optimised capacities in GW and GWh. Germany reaches its limits for offshore wind (50 GW, against 102 GW in Step 2) and solar (136 GW, against 165 GW). Onshore wind fills part of the gap, with 73 GW below its limit of 156 GW. OCGT grows from 77 to 84 GW, and the battery disappears. The system cost rises from 62.3 to 63.9 bn€/a.",
+)
+
+code("capacity3", "n.statistics.optimal_capacity().div(1e3)  # GW, GWh")
+
+md(
+    "limits3-md",
+    "The bar chart compares the generator capacities with Step 2 and with the limits. OCGT has no limit:",
 )
 
 code(
-    "capacity3",
+    "limits3",
     """
-fig, ax, grid = n.statistics.optimal_capacity.plot.bar(
-    components="Generator", x="bus", y="value", color="carrier", stacked=True
+step2 = pypsa.Network("network-step2.nc")
+generators = pd.DataFrame(
+    {
+        "Step 2": step2.generators.p_nom_opt,
+        "Step 3": n.generators.p_nom_opt,
+        "p_nom_max": p_nom_max,
+    }
 )
-ax.set(title="Generation capacity per country", ylabel="MW")
+(
+    generators
+    .rename(index=n.generators.carrier)
+    .div(1e3)
+    .plot.bar(title="Generator capacity, Germany", ylabel="GW", rot=0)
+)
 """,
 )
-
-md(
-    "lines3-md",
-    "The optimised line capacities in GW, 10 GW in total:",
-)
-
-code("lines3", "n.lines.s_nom_opt.div(1e3)  # GW")
-
-md(
-    "imports3-md",
-    "The net imports per country in TWh, positive for imports. Switzerland imports, because its wind and solar limits are small. Germany and Austria export:",
-)
-
-code("imports3", 'n.statistics.energy_balance(components="Line", groupby="bus").div(1e6)  # TWh')
 
 md(
     "emissions-md",
@@ -920,7 +884,11 @@ md(
 code(
     "emissions",
     """
-co2_per_mwh = n.generators.carrier.map(n.carriers.co2_emissions) / n.generators.efficiency
+co2_per_mwh = (
+    n.generators.carrier
+    .map(n.carriers.co2_emissions)
+    .div(n.generators.efficiency)
+)  # t/MWh
 emissions = n.generators_t.p * co2_per_mwh  # t/h
 co2 = n.snapshot_weightings.generators @ emissions.sum(axis=1)  # t
 round(float(co2) / 1e6, 1)  # Mt
@@ -929,7 +897,7 @@ round(float(co2) / 1e6, 1)  # Mt
 
 md(
     "emissions-text",
-    "Without a CO₂ price, OCGT supplies 376 TWh, 39 % of the generation, at 0.42 t of CO₂ per MWh of electricity. The emissions grow with each step: 79 Mt in Step 1, 105 Mt with the hydrogen demand of Step 2, and 156 Mt with Austria, Switzerland and the limits on German offshore wind and solar.",
+    "Without a CO₂ price, OCGT supplies 320 TWh, 39 % of the generation, at 0.42 t of CO₂ per MWh of electricity. The emissions grow with each step: 79 Mt in Step 1, 105 Mt with the hydrogen demand of Step 2, and 133 Mt with the limits on wind and solar.",
 )
 
 code("save3", 'n.export_to_netcdf("network-step3.nc");')
@@ -939,9 +907,9 @@ md(
     f"""
 ## Task 3 · A CO₂ limit and its price
 
-**6 min**
+**5 min**
 
-Load `network-step3.nc`, cut the emissions by 30 % (limit them to `0.7 * co2`) and re-optimise. What is the CO₂ price? How do the capacities and the line capacities change?
+Load `network-step3.nc`, cut the emissions by 30 % (limit them to `0.7 * co2`) and re-optimise. What is the CO₂ price? How do the capacities change?
 
 The CO₂ price is the **dual value** (shadow price) of the limit: the change in system cost when its right-hand side grows by one unit, here one tonne. A larger right-hand side relaxes a `<=` constraint and lowers the cost, so its dual is negative. PyPSA stores it in `n_task.global_constraints.mu`, in €/t.
 
@@ -969,7 +937,11 @@ code("task3-code", "# Your code here")
 md(
     "s4",
     f"""
-# Step 4 · Under the hood: linopy
+# Step 4 · Under the hood: linopy (advanced)
+
+> **Advanced**
+>
+> This step and Task 4 build the optimisation problem by hand and add a custom constraint. Steps 1–3 stand on their own.
 
 `n.optimize()` does three things: it builds a [linopy](https://linopy.readthedocs.io) model, solves it and writes the results back into the network. We now build the model ourselves, read it and add a constraint.
 
@@ -996,13 +968,20 @@ md(
 | energy balance | `Bus-nodal_balance` |
 | generator limits | `Generator-ext-p-upper` |
 | generator capacity expansion limits | `Generator-ext-p_nom-upper` |
-| KVL | `Kirchhoff-Voltage-Law` |
 
-Here is the energy balance of Germany in the first snapshot, with generators, the battery, the hydrogen converters and the lines:
+Here is the energy balance of Germany in the first snapshot, with generators, the battery and the hydrogen converters:
 """,
 )
 
-code("balance-con", 'm.constraints["Bus-nodal_balance"].sel(name="DE", snapshot=n.snapshots[0])')
+code(
+    "balance-con",
+    """
+(
+    m.constraints["Bus-nodal_balance"]
+    .sel(name="DE", snapshot=n.snapshots[0])
+)
+""",
+)
 
 md(
     "custom-md",
@@ -1032,6 +1011,19 @@ m.add_constraints(lhs >= rhs, name="RES-share")
 )
 
 md(
+    "lhs-text",
+    """
+linopy moves all terms to the left. Each wind and solar variable appears twice: with $w_t$ from the left-hand side and with $-\\alpha w_t$ from the right-hand side. Each OCGT variable appears once, with $-\\alpha w_t$. With $w_t = 6$ h, the printout shows $+6$ and $-4.2$. Merged, the constraint reads:
+
+$$
+(1 - \\alpha) \\sum_{t} w_t \\sum_{s \\in \\text{RES}} g_{s,t} - \\alpha \\sum_{t} w_t \\sum_{s \\not\\in \\text{RES}} g_{s,t} \\geq 0
+$$
+
+Each MWh of wind or solar counts $1 - \\alpha$, each MWh of OCGT counts $-\\alpha$.
+""",
+)
+
+md(
     "export-note",
     """
 > **Warning**
@@ -1047,7 +1039,7 @@ md(
 
 code("solve", 'n.optimize.solve_model(io_api="direct")')
 
-code("objective4", "n.objective / 1e9")
+code("objective4", "n.objective / 1e9  # bn€/a")
 
 md(
     "dual-md",
@@ -1056,7 +1048,7 @@ As for the CO₂ limit of Task 3, the solver returns a **dual value** for each c
 """,
 )
 
-code("dual", 'm.constraints["RES-share"].dual')
+code("dual", 'm.constraints["RES-share"].dual  # €/MWh')
 
 md(
     "pdc-md",
@@ -1073,7 +1065,12 @@ pdc = pd.DataFrame(
         "α = 0.7": n.buses_t.marginal_price["DE"].sort_values(ascending=False).values,
     }
 )
-pdc.plot(title="Price duration curve, Germany", xlabel="snapshots, sorted", ylabel="€/MWh", ylim=(-25, 200))
+pdc.plot(
+    title="Price duration curve, Germany",
+    xlabel="snapshots, sorted",
+    ylabel="€/MWh",
+    ylim=(-25, 200),
+)
 """,
 )
 
@@ -1083,16 +1080,16 @@ md(
 Each flat level of the curve is the marginal cost of the technology that sets the price (6 h averages):
 
 - **Step 3.** OCGT sets the price most of the time, at its marginal cost $o_\\text{OCGT}$ of 82.4 €/MWh. Near 0 €/MWh, curtailed wind and solar set it. Above, OCGT runs at full capacity and the electrolysis sets the price by cutting its consumption.
-- **$\\alpha = 0.7$.** With all terms on the left, the constraint reads $(1 - \\alpha) \\sum_{t} w_t \\sum_{s \\in \\text{RES}} g_{s,t} - \\alpha \\sum_{t} w_t \\sum_{s \\not\\in \\text{RES}} g_{s,t} \\geq 0$. Each MWh of wind or solar counts $1 - \\alpha$, each MWh of OCGT counts $-\\alpha$. The constraint thus acts as a tax on OCGT and a subsidy for wind and solar, both set by the dual $\\mu$ = 35.1 €/MWh. OCGT now sets the price at $o_\\text{OCGT} + \\alpha \\mu \\approx 107$ €/MWh, and curtailed wind and solar at $-(1 - \\alpha) \\mu \\approx -10.5$ €/MWh.
+- **$\\alpha = 0.7$.** In the merged `RES-share` constraint above, each MWh of wind or solar counts $1 - \\alpha$, each MWh of OCGT counts $-\\alpha$. The constraint thus acts as a tax on OCGT and a subsidy for wind and solar, both set by the dual $\\mu$ = 33.7 €/MWh. OCGT now sets the price at $o_\\text{OCGT} + \\alpha \\mu \\approx 106$ €/MWh, and curtailed wind and solar at $-(1 - \\alpha) \\mu \\approx -10.1$ €/MWh.
 """,
 )
 
 md(
     "task4",
     f"""
-## Task 4 · A higher renewable share (if time allows)
+## Task 4 · A higher renewable share (advanced, if time allows)
 
-**7 min**
+**10 min**
 
 Rebuild the model from `network-step3.nc` with $\\alpha = 0.75$ and solve it. How do the dual value, the system cost and the electricity prices change? Add the German prices at $\\alpha = 0.75$ to the price duration curve.
 
@@ -1116,8 +1113,8 @@ md(
 |---|---|---|
 | ✓ | 1 · Capacity expansion for Germany | Build a model with `Network`, `Bus`, `Load`, `Generator`, `StorageUnit` |
 | ✓ | 2 · Sector coupling with hydrogen | Couple sectors with `Process`, `Link` and `Store` |
-| ✓ | 3 · Parameters as constraints, and the grid | Define behaviour with parameters; add `Line`s |
-| ✓ | 4 · Under the hood: linopy | Read the optimisation problem, add a constraint, read its dual |
+| ✓ | 3 · Parameters as constraints | Define behaviour with parameters |
+| ✓ | 4 · Under the hood: linopy (advanced) | Read the optimisation problem, add a constraint, read its dual |
 
 **Further learning.** Heat and transport in [PyPSA: Sector-Coupling]({SC}). See also an open course on [Data Science for Energy System Modelling]({DSESM}/intro/).
 """,
@@ -1147,7 +1144,7 @@ n_task.statistics.optimal_capacity().div(1e3)  # GW
 """,
 )
 
-code("sol1-cost", "n_task.objective / 1e9")
+code("sol1-cost", "n_task.objective / 1e9  # bn€/a")
 
 md(
     "sol1-text",
@@ -1166,7 +1163,7 @@ n_task.statistics.optimal_capacity().div(1e3)  # GW, GWh
 """,
 )
 
-code("sol2-cost", "n_task.objective / 1e9")
+code("sol2-cost", "n_task.objective / 1e9  # bn€/a")
 
 md(
     "sol2-text",
@@ -1191,21 +1188,21 @@ n_task.global_constraints.mu  # €/t
 """,
 )
 
-code("sol3-cost", "n_task.objective / 1e9")
+code("sol3-cost", "n_task.objective / 1e9  # bn€/a")
 
 code(
     "sol3-capacity",
     """
-n_task.statistics.optimal_capacity(groupby=["bus", "carrier"]).div(1e3)  # GW, GWh
+n_task.statistics.optimal_capacity().div(1e3)  # GW, GWh
 """,
 )
 
 md(
     "sol3-text",
-    "**Interpretation** (6 h averages). Cutting the emissions by 30 %, from 156 to 109 Mt, gives a CO₂ price of 86 €/t (`mu` is −86): the marginal abatement cost. The system cost rises by 3.4 %, from 73.8 to 76.3 bn€/a. German onshore wind replaces much of the OCGT output. More electrolysis and hydrogen storage absorb the wind peaks, and the lines grow. The TYNDP 2026 National Trends+ CO₂ price for 2035, 197.5 €/t, is a scenario input for the whole EU ETS. Ours is a result: the cost of a 30 % cut in a stylised model of three countries.",
+    "**Interpretation** (6 h averages). Cutting the emissions by 30 %, from 133 to 93 Mt, gives a CO₂ price of 86 €/t (`mu` is −86): the marginal abatement cost. The system cost rises by 3.4 %, from 63.9 to 66.1 bn€/a. Onshore wind grows from 73 to 130 GW and replaces much of the OCGT output (84 → 76 GW). More electrolysis (24 → 34 GW), hydrogen storage (0.35 → 2.1 TWh) and a battery (11 GW) absorb the wind peaks. The TYNDP 2026 National Trends+ CO₂ price for 2035, 197.5 €/t, is a scenario input for the whole EU ETS. Ours is a result: the cost of a 30 % cut in a stylised model of Germany.",
 )
 
-md("sol4-md", "## Task 4 · A higher renewable share (if time allows)")
+md("sol4-md", "## Task 4 · A higher renewable share (advanced, if time allows)")
 
 code(
     "sol4",
@@ -1218,17 +1215,26 @@ lhs = (g.sel(name=res) * w).sum()
 rhs = 0.75 * (g * w).sum()
 m_task.add_constraints(lhs >= rhs, name="RES-share")
 n_task.optimize.solve_model(io_api="direct")
-m_task.constraints["RES-share"].dual
+m_task.constraints["RES-share"].dual  # €/MWh
 """,
 )
 
-code("sol4-cost", "n_task.objective / 1e9")
+code("sol4-cost", "n_task.objective / 1e9  # bn€/a")
 
 code(
     "sol4-pdc",
     """
-pdc["α = 0.75"] = n_task.buses_t.marginal_price["DE"].sort_values(ascending=False).values
-pdc.plot(title="Price duration curve, Germany", xlabel="snapshots, sorted", ylabel="€/MWh", ylim=(-25, 200))
+pdc["α = 0.75"] = (
+    n_task.buses_t.marginal_price["DE"]
+    .sort_values(ascending=False)
+    .values
+)
+pdc.plot(
+    title="Price duration curve, Germany",
+    xlabel="snapshots, sorted",
+    ylabel="€/MWh",
+    ylim=(-25, 200),
+)
 """,
 )
 
@@ -1241,13 +1247,18 @@ networks = {"Step 3": step3, "α = 0.7": n, "α = 0.75": n_task}
 capacity = pd.DataFrame(
     {label: nw.statistics.optimal_capacity().drop("Store") for label, nw in networks.items()}
 )
-capacity.droplevel("component").div(1e3).plot.bar(title="Capacity", ylabel="GW", rot=0)
+(
+    capacity
+    .droplevel("component")
+    .div(1e3)
+    .plot.bar(title="Capacity", ylabel="GW", rot=0)
+)
 """,
 )
 
 md(
     "sol4-text",
-    "**Interpretation** (6 h averages). The dual rises from 35 €/MWh at $\\alpha = 0.7$ to 60 €/MWh at $\\alpha = 0.75$. The system cost rises from 75.4 to 77.4 bn€/a, against 73.8 bn€/a in Step 3. Each extra percent of renewables costs more than the one before. The price levels move with the dual: OCGT now sets $82.4 + 0.75 \\times 60 \\approx 127$ €/MWh, and wind and solar $o_s - 0.25 \\times 60 \\approx -15$ €/MWh. The capacities show how: OCGT falls from 102 GW in Step 3 to 90 and 86 GW. Onshore wind (all three countries) grows from 95 to 150 and 166 GW: at $\\alpha = 0.75$, all wind and solar reach their limits. The battery (0 → 18 → 24 GW) and the electrolysis (24 → 29 → 42 GW) grow too: they use wind and solar output that would otherwise be curtailed. The lines grow from 10 to 13 GW. The battery result depends on the resolution: at 3 h, Step 3 already builds 20 GW of battery.",
+    "**Interpretation** (6 h averages). The dual rises from 34 €/MWh at $\\alpha = 0.7$ to 40 €/MWh at $\\alpha = 0.75$. The system cost rises from 65.3 to 66.8 bn€/a, against 63.9 bn€/a in Step 3. Each extra percent of renewables costs more than the one before. The price levels move with the dual: OCGT now sets $82.4 + 0.75 \\times 40 \\approx 113$ €/MWh, and wind and solar $o_s - 0.25 \\times 40 \\approx -10$ €/MWh. The capacities show how: OCGT falls from 84 GW in Step 3 to 75 and 73 GW. Onshore wind grows from 73 to 117 and 139 GW, close to its limit of 156 GW; offshore wind and solar stay at their limits. The battery (0 → 13 → 16 GW) and the electrolysis (24 → 29 → 36 GW) grow too: they use wind and solar output that would otherwise be curtailed.",
 )
 
 # ================================================================ sources
