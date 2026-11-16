@@ -18,26 +18,26 @@ Download this repository and create the environment `.venv`, as the [Setup](../R
 
 ## 2 · Run the workflow
 
-Activate the environment and open a terminal in this folder (`reproducible-workflows`). All paths are relative to it. Then run the four stages in order. Each stage gives the same result: a total system cost of about 66 bn €/a and a CO₂ price of about 86 €/t.
+Activate the environment and open a terminal in this folder (`03-reproducible-workflows`). All paths are relative to it. Then run the four stages in order. Each stage gives the same result: a total system cost of about 66 bn €/a and a CO₂ price of about 86 €/t.
 
 ```sh
-python PyPSA-cem.py                 # 1) Monolithic script
-bash python-commands-example.sh     # 2) Modular scripts, one by one
-make                                # 3) Workflow with Make
-snakemake --cores 1                 # 4) Workflow with Snakemake
+python 1-monolith/PyPSA-cem.py                # 1) Monolithic script
+bash 2-scripts/run.sh                         # 2) Modular scripts, one by one
+make -f 3-make/Makefile                       # 3) Workflow with Make
+snakemake -s 4-snakemake/Snakefile --cores 1  # 4) Workflow with Snakemake
 ```
 
 ### Stage 1 · Monolithic script
 
-File: [`PyPSA-cem.py`](PyPSA-cem.py).
+File: [`1-monolith/PyPSA-cem.py`](1-monolith/PyPSA-cem.py).
 
 One script reads the data, processes the costs and time series, builds the network, solves it and shows the results. It is easy to start with. But to change one step, you must run all of them again, and you cannot reuse a step in another project.
 
 ### Stage 2 · Modular scripts
 
-Files: [`scripts/`](scripts) and [`python-commands-example.sh`](python-commands-example.sh).
+Files: [`scripts/`](scripts) and [`2-scripts/run.sh`](2-scripts/run.sh).
 
-The monolith is split into six scripts, one per step. Each script reads its inputs from files, and writes its outputs to files in `data/` or `results/`:
+The monolith is split into six scripts, one per step. Stages 2 to 4 share them. Each script reads its inputs from files, and writes its outputs to files in `data/` or `results/`:
 
 | Script | Input | Output |
 |---|---|---|
@@ -54,28 +54,28 @@ The shell script runs the six scripts in order. You still decide the order, and 
 
 ### Stage 3 · Workflow with Make
 
-File: [`makefile`](makefile).
+File: [`3-make/Makefile`](3-make/Makefile).
 
-Each rule names a target file, the files it depends on, and the command that makes it. Make builds the graph of dependencies, and runs only the steps whose inputs are newer than their outputs. Edit `scripts/6_plot.py` and run `make` again: only the plot runs. `make clean` deletes the files in `data/` and `results/`.
+Each rule names a target file, the files it depends on, and the command that makes it. Make builds the graph of dependencies, and runs only the steps whose inputs are newer than their outputs. Edit `scripts/6_plot.py` and run `make -f 3-make/Makefile` again: only the plot runs. `make -f 3-make/Makefile clean` deletes the files in `data/` and `results/`.
 
 ### Stage 4 · Workflow with Snakemake
 
-File: [`Snakefile`](Snakefile).
+File: [`4-snakemake/Snakefile`](4-snakemake/Snakefile).
 
-[Snakemake](https://snakemake.readthedocs.io) is a workflow manager written in Python. As Make, it builds a DAG (directed acyclic graph, steps without loops) from the inputs and outputs of its rules. A rule can call a Python script with `script:`, which then reads its paths from the `snakemake` object. Snakemake also creates the output folders, and can run steps in parallel (`--cores`).
+[Snakemake](https://snakemake.readthedocs.io) is a workflow manager written in Python. As Make, it builds a DAG (directed acyclic graph, steps without loops) from the inputs and outputs of its rules. A rule can call a Python script with `script:`, which then reads its paths from the `snakemake` object. Snakemake also creates the output folders, and can run steps in parallel (`--cores`). The file paths of the rules are relative to the folder where you run Snakemake; the `script:` paths are relative to the Snakefile.
 
 Useful commands:
 
 ```sh
-snakemake --cores 1 --dry-run              # Show the steps that would run, without running them
-snakemake --cores 1 results/solved_cem.nc  # Make one file and its dependencies only
-snakemake --cores 1 --forceall             # Run all steps again
-snakemake --rulegraph | dot -Tpng > rulegraph.png
+snakemake -s 4-snakemake/Snakefile --cores 1 --dry-run              # Show the steps that would run, without running them
+snakemake -s 4-snakemake/Snakefile --cores 1 results/solved_cem.nc  # Make one file and its dependencies only
+snakemake -s 4-snakemake/Snakefile --cores 1 --forceall             # Run all steps again
+snakemake -s 4-snakemake/Snakefile --rulegraph | dot -Tpng > 4-snakemake/rulegraph.png
 ```
 
-The last command needs [Graphviz](https://graphviz.org). [`rulegraph.png`](rulegraph.png) shows its result:
+The last command needs [Graphviz](https://graphviz.org). [`4-snakemake/rulegraph.png`](4-snakemake/rulegraph.png) shows its result:
 
-![Rule graph of the Snakefile](rulegraph.png)
+![Rule graph of the Snakefile](4-snakemake/rulegraph.png)
 
 Large models use the same structure. The [PyPSA-Eur](https://github.com/PyPSA/pypsa-eur) and [Open-TYNDP](https://github.com/open-energy-transition/open-tyndp) workflows chain hundreds of such rules.
 
@@ -85,10 +85,10 @@ See the [Troubleshooting](../README.md#troubleshooting) of the Setup. Specific t
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `'bash' is not recognized` (Windows) | Windows has no bash | Use **Git Bash**, which comes with [Git for Windows](https://git-scm.com/download/win), or run the six commands of `python-commands-example.sh` one by one |
+| `'bash' is not recognized` (Windows) | Windows has no bash | Use **Git Bash**, which comes with [Git for Windows](https://git-scm.com/download/win), or run the six commands of `2-scripts/run.sh` one by one |
 | `'make' is not recognized` (Windows, Git Bash) | Windows and Git Bash have no Make | Install it with `winget install ezwinports.make`, or skip to stage 4: Snakemake runs on Windows |
-| `FileNotFoundError: ../02-hands-on-pypsa/data/...` | The terminal is not in `reproducible-workflows` | Change to this folder, then run the command again |
+| `FileNotFoundError: ../02-hands-on-pypsa/data/...` | The terminal is not in `03-reproducible-workflows` | Change to this folder, then run the command again |
 
 ## Licence
 
-The contents of this folder are derived from Fabian Neumann's [Data Science for Energy System Modelling](https://fneum.github.io/data-science-for-esm/) course materials, in particular the [PyPSA Capacity Expansion Modelling](https://fneum.github.io/data-science-for-esm/dsesm/workshop-pypsa-cem/) notebook, and available under the MIT License. The TYNDP data are under CC-BY-4.0; see the [licence of the PyPSA session](../02-hands-on-pypsa/README.md#licence).
+The contents of this folder are derived from Fabian Neumann's [Data Science for Energy System Modelling](https://fneum.github.io/data-science-for-esm/) course materials, in particular the [PyPSA Capacity Expansion Modelling](https://fneum.github.io/data-science-for-esm/dsesm/workshop-pypsa-cem/) notebook, and available under the [MIT License](LICENSE). The TYNDP data are under CC-BY-4.0; see the [licence of the PyPSA session](../02-hands-on-pypsa/README.md#licence).

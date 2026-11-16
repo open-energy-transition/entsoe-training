@@ -2,6 +2,8 @@
 
 The model of Step 3 and Task 3 (CO2 limit) of the "Hands on with PyPSA components" notebook,
 as one monolithic script.
+
+Run from 03-reproducible-workflows: python 1-monolith/PyPSA-cem.py
 """
 
 import logging
@@ -179,7 +181,7 @@ n.add(
     p_set=142.7e6 / 8760,  # 142.7 TWh/a
 )
 
-# CO2 limit, for illustration: 70 % of the emissions without limit (132.9 Mt/a), as in Task 3
+# CO2 limit, for illustration: 70 % of the emissions without limit (132.9 Mt/a), as in Task 3 of the previous session
 n.add(
     "GlobalConstraint",
     "CO2Limit",

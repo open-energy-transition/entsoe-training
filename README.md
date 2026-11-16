@@ -5,14 +5,14 @@ Material for the hands-on workshops of the ENTSO-E training by [Open Energy Tran
 ## Folder structure
 
 ```
-diagrams/                # Sequence diagrams and other visual aids
-notebooks/               # Python refresher notebooks
-02-hands-on-pypsa/       # Hands on with PyPSA components: notebook, data and build scripts
-quality/                 # Code quality exercise (own conda environment)
-reproducible-workflows/  # Reproducible and automatable workflows: script, Make and Snakemake
+diagrams/                   # Sequence diagrams and other visual aids
+notebooks/                  # Python refresher notebooks
+02-hands-on-pypsa/          # Hands on with PyPSA components: notebook, data and build scripts
+quality/                    # Code quality exercise (own conda environment)
+03-reproducible-workflows/  # Reproducible and automatable workflows: script, Make and Snakemake
 ```
 
-Each session folder has its own README with the steps of the session. The sessions `02-hands-on-pypsa` and `reproducible-workflows` share the Python environment of the [Setup](#setup).
+Each session folder has its own README with the steps of the session. The sessions `02-hands-on-pypsa` and `03-reproducible-workflows` share the Python environment of the [Setup](#setup).
 
 ## Setup
 

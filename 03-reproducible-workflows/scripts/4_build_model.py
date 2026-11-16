@@ -37,7 +37,7 @@ def main(
         Maximum wind and solar capacity per generator, in MW
     CO2_constraint: float
         CO2 limit, in t/a. The default is 70 % of the emissions without limit
-        (132.9 Mt/a), as an illustration, as in Task 3 of the notebook.
+        (132.9 Mt/a), as an illustration, as in Task 3 of the previous session.
 
     Returns
     -------

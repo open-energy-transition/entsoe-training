@@ -1,3 +1,5 @@
+# Run from 03-reproducible-workflows: bash 2-scripts/run.sh
+
 echo "Getting data"
 python scripts/1_get_data.py
 echo "Getting costs"

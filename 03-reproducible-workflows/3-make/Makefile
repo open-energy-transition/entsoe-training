@@ -1,3 +1,5 @@
+# Run from 03-reproducible-workflows: make -f 3-make/Makefile
+
 PYTHON = python
 
 .PHONY: all clean
