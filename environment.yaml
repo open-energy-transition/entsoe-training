@@ -1,7 +1,14 @@
 name: entsoe-training
 channels:
 - conda-forge
+- bioconda
 - nodefaults
 dependencies:
 - python >=3.12,<3.14
-- jupyterlab >=4
+- jupyterlab==4.6.6
+- pypsa==1.4.0
+- linopy==0.10.1
+- highspy==1.15.1
+- pandas>=3, <4
+- matplotlib>=3, <4
+- snakemake-minimal>=9, <10

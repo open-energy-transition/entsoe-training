@@ -9,8 +9,8 @@ Before that, we apply the Open-TYNDP overwrites, based on TYNDP 2026 National Tr
 """
 
 import os
-import pandas as pd
 
+import pandas as pd
 from pypsa.costs import annuity
 
 

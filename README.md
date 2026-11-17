@@ -5,11 +5,13 @@ Material for the hands-on workshops of the ENTSO-E training by [Open Energy Tran
 ## Folder structure
 
 ```
-diagrams/                   # Sequence diagrams and other visual aids
-notebooks/                  # Python refresher notebooks
-02-hands-on-pypsa/          # Hands on with PyPSA components: notebook, data and build scripts
-quality/                    # Code quality exercise (own conda environment)
-03-reproducible-workflows/  # Reproducible and automatable workflows: script, Make and Snakemake
+01-python-recap/              # A refresher on Python with an exercise on code quality
+02-hands-on-pypsa/            # Hands on with PyPSA components: notebook, data and build scripts
+03-reproducible-workflows/    # Reproducible and automatable workflows: script, Make and Snakemake
+04-git-recap/                 # A refresher on version control, specifically, git
+05-team-workflow/             # Using git version control individually or in small teams
+06-open-source-collaboration  # Collaborate on open source projects using version control
+diagrams/                     # Sequence diagrams and other visual aids
 ```
 
 Each session folder has its own README with the steps of the session. The sessions `02-hands-on-pypsa` and `03-reproducible-workflows` share the Python environment of the [Setup](#setup).
@@ -36,6 +38,10 @@ cd entsoe-training
 Or click **Code › Download ZIP** and extract it. On Windows, extract it to a short path such as `C:\entsoe-training` to avoid the 260-character path limit.
 
 ### 2 · Create the environment
+
+Open a terminal in the folder of this repository and run the conda command shown in [./setup.md](./setup.md).  If that doesn't work, or you do not have conda installed, trying the following using .venv.
+
+#### Fallback using venv (a virtual Python environment)
 
 Open a terminal in the folder of this repository and run the block for your system. It creates a virtual environment `.venv` and installs the pinned packages of `requirements.txt`. If Python is missing, install it from [python.org](https://www.python.org/downloads/); on Windows, keep the **py launcher** option ticked.
 

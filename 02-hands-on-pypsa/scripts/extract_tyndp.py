@@ -120,7 +120,7 @@ def main(package: Path) -> None:
         columns[f"{country} load"] = read_demand(package, zone).round(1)
         for carrier in CARRIERS[country]:
             columns[f"{country} {carrier}"] = read_capacity_factor(
-                package, zone, PECD_FILES[carrier]
+                package, zone, PECD_FILES[carrier],
             ).round(4)
 
     df = pd.DataFrame(columns)
@@ -137,7 +137,7 @@ def main(package: Path) -> None:
         .mean()
         .round(4)
         .rename("mean CF")
-        .to_string()
+        .to_string(),
     )
     write_pemmdb(package)
 

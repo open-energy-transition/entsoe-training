@@ -5,7 +5,6 @@ pypsa.options.api.legacy_string_dtype = False
 
 def main(network: pypsa.Network):
     """Print the main results and plot the generation capacity"""
-
     n = network
     co2_per_mwh = n.generators.carrier.map(n.carriers.co2_emissions).div(n.generators.efficiency)
     co2 = n.snapshot_weightings.generators @ (n.generators_t.p * co2_per_mwh).sum(axis=1)
@@ -20,7 +19,7 @@ def main(network: pypsa.Network):
     )
 
     fig, ax, _ = n.statistics.optimal_capacity.plot.bar(
-        components="Generator", x="carrier", y="value", color="carrier"
+        components="Generator", x="carrier", y="value", color="carrier",
     )
     ax.set(title="Generation capacity, Germany", ylabel="MW")
     return fig

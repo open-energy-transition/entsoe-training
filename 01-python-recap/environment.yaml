@@ -1,7 +1,7 @@
-name: quality
+name: 01-python-recap
 channels:
 - conda-forge
 - nodefaults
 dependencies:
+- python >=3.12,<3.14
 - ruff >=0.17.4,<0.18
-

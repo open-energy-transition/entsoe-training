@@ -10,7 +10,9 @@ The requirements of the [Setup](../README.md#setup) apply. The notebook download
 
 ## 1 · Set up
 
-Download this repository and create the environment `.venv`, as the [Setup](../README.md#setup) explains.
+Download this repository and create the environment using the `02-hands-on-pypsa/environment.yaml` file.
+
+As a fallback, create the environment using `.venv`, as the [Setup](../README.md#setup) explains. The environment includes Snakemake.
 
 ## 2 · Run the notebook
 
