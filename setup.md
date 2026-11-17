@@ -1,10 +1,17 @@
 # Setup
 
-You need `conda` (from Anaconda or Miniconda) installed on your computer.
+You can set up the Python environment in one of three ways:
+
+- **`conda`** (from Anaconda or Miniconda)
+- **`uv`**, a fast Python package and project manager
+- **`pip`** with a virtual environment (requires Python 3.12 or newer)
+
+Pick the one you are most familiar with. If you have none of them, we recommend `uv`.
+
 The steps are:
 
 1. Get the training material (Git clone or ZIP download).
-2. Create the `conda` environment from `environment.yaml`.
+2. Create the Python environment with `conda`, `uv` or `pip`.
 3. Activate the environment.
 4. Start Jupyter Lab.
 
@@ -13,7 +20,7 @@ The steps are:
 ### Option A: Git clone (recommended)
 
 Git lets you update the material later with one command. Open a terminal
-(on Windows, the *Anaconda Prompt*) and run:
+(on Windows, the *Anaconda Prompt* if you use `conda`, otherwise *PowerShell*) and run:
 
 ```sh
 cd path/to/your/directory
@@ -36,13 +43,17 @@ folder.
 ### Navigating in the terminal
 
 You run all commands below from the root folder of the training material,
-the folder that contains `environment.yaml`. These commands help you get there:
+the `entsoe-training` folder. These commands help you get there:
 
 - `cd my_directory`: go into `my_directory`
 - `cd ..`: go up one directory
 - `ls` (Linux/MacOS) or `dir` (Windows): list the files in the current directory
 
-## 2. Create the `conda` environment
+## 2. Create the environment
+
+Follow **one** of the three options below.
+
+### Option A: `conda`
 
 Check that `conda` works:
 
@@ -50,7 +61,7 @@ Check that `conda` works:
 conda --version
 ```
 
-Create the environment from the relevant subfolder folder of the training material:
+Create the environment from the relevant subfolder of the training material:
 
 ```sh
 conda env create -f 01-python-recap/environment.yaml
@@ -59,9 +70,61 @@ cd 01-python-recap
 conda env create -f environment.yaml
 ```
 
-This creates an environment named `01-python-recap`. It can take a few minutes.  
+This creates an environment named `01-python-recap`. It can take a few minutes.
+
+### Option B: `uv`
+
+If you do not have `uv` yet, install it:
+
+```sh
+# Linux/MacOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Open a new terminal and check that `uv` works:
+
+```sh
+uv --version
+```
+
+Create a virtual environment and install the packages:
+
+```sh
+uv venv --python 3.12
+uv pip install -r 01-python-recap/requirements.txt
+```
+
+This creates a `.venv` folder in `entsoe-training`. `uv` downloads Python 3.12
+for you if it is not installed.
+
+### Option C: `pip`
+
+Check that Python 3.12 or newer works:
+
+```sh
+python --version
+```
+
+On some Linux/MacOS systems the command is `python3` instead of `python`.
+
+Create a virtual environment and install the packages:
+
+```sh
+python -m venv .venv
+```
+
+Activate it as described in step 3, then run:
+
+```sh
+python -m pip install --upgrade pip
+python -m pip install -r 01-python-recap/requirements.txt
+```
 
 ## 3. Activate the environment
+
+**`conda`:**
 
 ```sh
 conda activate 01-python-recap
@@ -69,8 +132,24 @@ conda activate 01-python-recap
 
 Your prompt now starts with `(01-python-recap)`.
 
-> **Warning:** Activation does not persist. Run `conda activate 01-python-recap`
+**`uv` or `pip`:**
+
+```sh
+# Linux/MacOS
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+# Windows (Command Prompt)
+.venv\Scripts\activate.bat
+```
+
+Your prompt now starts with `(.venv)` or `(entsoe-training)`.
+
+> **Warning:** Activation does not persist. Run the activation command
 > again in every new terminal.
+
+> **Tip (`uv` only):** Instead of activating, you can prefix commands with
+> `uv run`, for example `uv run jupyter lab`.
 
 ## 4. Start Jupyter Lab
 
@@ -83,7 +162,7 @@ with `01-workshop-python.ipynb`.
 
 ## Fallback: Google Colab
 
-If `conda` does not work on your computer, you can run the notebooks in your
+If none of the options above work on your computer, you can run the notebooks in your
 browser with [Google Colab](https://colab.research.google.com/). This requires
 a Google account.
 
