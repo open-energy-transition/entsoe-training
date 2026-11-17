@@ -10,8 +10,9 @@ and a CO2 limit caps the emissions. This is the model of Step 3 and Task 3 of th
 """
 
 import os
-import pypsa
+
 import pandas as pd
+import pypsa
 
 pypsa.options.api.legacy_string_dtype = False
 
@@ -27,7 +28,7 @@ def main(
 ) -> pypsa.Network:
     """For building the model, we start again by initialising an empty network.
 
-    Arguments
+    Arguments:
     ---------
     costs: pd.DataFrame
         Cost and other technology data
@@ -39,13 +40,12 @@ def main(
         CO2 limit, in t/a. The default is 70 % of the emissions without limit
         (132.9 Mt/a), as an illustration, as in Task 3 of the previous session.
 
-    Returns
+    Returns:
     -------
     pypsa.Network
         Initialised PyPSA Network
 
     """
-
     n = pypsa.Network()
     n.add("Bus", "DE", carrier="AC")
 

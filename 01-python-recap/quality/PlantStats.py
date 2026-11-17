@@ -1,8 +1,8 @@
 #this module does energy stuff
-import os, sys, math
-from statistics import *
-import json
 import csv
+import json
+import sys
+from statistics import *
 
 DATA = []
 TOTAL=0
@@ -30,7 +30,7 @@ def capacityFactor(plant):
 
 def CF_list(plants):
   l = []
-  for i in range(0, len(plants) - 1):
+  for i in range(len(plants) - 1):
     p = plants[i]
     l.append(p["gen"] / (p["cap"] * 8760))
   return l
@@ -40,7 +40,7 @@ def lcoe(p, rate = r):
     """Calculates the capacity factor"""
     costs = p["capex"]
     energy = 0
-    for t in range(0, p["life"]):
+    for t in range(p["life"]):
         costs = costs + p["opex"] / (1 + rate) ** t
         energy = energy + p["gen"] / (1 + rate) ** t
     return costs / energy
@@ -49,7 +49,7 @@ def lcoe(p, rate = r):
 def lcoe2(p):
     costs = p["capex"]
     energy = 0
-    for t in range(0, p["life"]):
+    for t in range(p["life"]):
         costs = costs + p["opex"] / (1 + 0.07) ** t
         energy = energy + p["gen"] / (1 + 0.07) ** t
     return costs / energy * 1000
@@ -71,15 +71,11 @@ def do_everything(plants, t, out):
                         x = lcoe(p)
                         y = p["gen"] / (p["cap"] * 8760)
                         TOTAL = TOTAL + p["gen"]
-                        if p["tech"] == "wind":
-                            em = 0
-                        elif p["tech"] == "solar":
+                        if p["tech"] == "wind" or p["tech"] == "solar":
                             em = 0
                         elif p["tech"] == "gas":
                             em = p["gen"] * 0.37
-                        elif p["tech"] == "coal":
-                            em = p["gen"] * 0.82
-                        elif p["tech"] == "Coal":
+                        elif p["tech"] == "coal" or p["tech"] == "Coal":
                             em = p["gen"] * 0.82
                         res[p["name"]] = {"lcoe": x, "cf": y, "em": em}
     if out == True:

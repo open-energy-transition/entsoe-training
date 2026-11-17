@@ -10,7 +10,6 @@ pypsa.options.params.optimize.include_objective_constant = False
 
 def main(network: pypsa.Network) -> pypsa.Network:
     """Solve the network"""
-
     network.optimize(io_api="direct")
     return network
 

@@ -15,8 +15,9 @@ of the session "Hands on with PyPSA components" (`../02-hands-on-pypsa/data`).
 """
 
 import os
-import pandas as pd
 from os.path import join
+
+import pandas as pd
 
 os.makedirs("data", exist_ok=True)
 
