@@ -1,4 +1,4 @@
-# Git refresher for energy modellers: instructor script
+# Git: collaborating on open-source projects
 
 - **Instructor:** Will Usher
 - **Length:** 40 minutes
