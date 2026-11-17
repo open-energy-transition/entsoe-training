@@ -4,10 +4,11 @@ You've "inherited" the `PlantStats.py` script from a colleague who has recently 
 
 Apparently, the script computes some useful statistics for your annual report, from the data provided in `plants.csv`.
 
-First, create and activate the conda environment:
+First, create and activate the conda environment (the same as for the 01-python-recap session):
 
-    conda env create -f environment.yaml
-    conda activate quality
+    cd 01-python-recap/quality
+    conda env create -f ../environment.yaml
+    conda activate 01-python-recap
 
 Your task is to:
 

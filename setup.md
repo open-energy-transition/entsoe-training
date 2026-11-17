@@ -59,20 +59,17 @@ cd 01-python-recap
 conda env create -f environment.yaml
 ```
 
-This creates an environment named `entsoe-training` (if you use the `environment.yaml` file from the root folder). It can take a few
-minutes.  Otherwise the environment you create is called after the folder e.g. `01-python-recap`.
+This creates an environment named `01-python-recap`. It can take a few minutes.  
 
 ## 3. Activate the environment
 
 ```sh
-conda activate entsoe-training
-# Alternatively
 conda activate 01-python-recap
 ```
 
-Your prompt now starts with `(entsoe-training)`.
+Your prompt now starts with `(01-python-recap)`.
 
-> **Warning:** Activation does not persist. Run `conda activate entsoe-training`
+> **Warning:** Activation does not persist. Run `conda activate 01-python-recap`
 > again in every new terminal.
 
 ## 4. Start Jupyter Lab
