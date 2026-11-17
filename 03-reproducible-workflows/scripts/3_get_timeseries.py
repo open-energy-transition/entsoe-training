@@ -8,6 +8,7 @@ already in MW, the base unit of PyPSA.
 """
 
 import os
+
 import pandas as pd
 
 

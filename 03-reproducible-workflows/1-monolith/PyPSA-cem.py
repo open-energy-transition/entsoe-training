@@ -32,7 +32,7 @@ ts = pd.read_csv(
     parse_dates=True,
 )
 p_nom_max = pd.read_csv(
-    f"{data_dir}/tyndp2026-nt2035-wind-solar-capacity.csv", index_col=0
+    f"{data_dir}/tyndp2026-nt2035-wind-solar-capacity.csv", index_col=0,
 ).p_nom_max
 
 # 2. Process cost and timeseries data
@@ -210,7 +210,7 @@ print(
 )
 
 fig, ax, _ = n.statistics.optimal_capacity.plot.bar(
-    components="Generator", x="carrier", y="value", color="carrier"
+    components="Generator", x="carrier", y="value", color="carrier",
 )
 ax.set(title="Generation capacity, Germany", ylabel="MW")
 plt.show()
